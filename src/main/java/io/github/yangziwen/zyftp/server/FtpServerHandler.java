@@ -12,7 +12,8 @@ public class FtpServerHandler extends SimpleChannelInboundHandler<FtpRequest> {
 	
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
-    	// TODO
+    	FtpSession.getOrCreateSession(ctx);
+    	// TODO reply 220
     }
 
 }
