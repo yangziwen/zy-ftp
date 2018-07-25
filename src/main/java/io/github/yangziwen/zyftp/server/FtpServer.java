@@ -1,6 +1,7 @@
 package io.github.yangziwen.zyftp.server;
 
 import io.github.yangziwen.zyftp.server.codec.FtpRequestDecoder;
+import io.github.yangziwen.zyftp.server.codec.FtpResponseEncoder;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.Channel;
@@ -29,7 +30,7 @@ public class FtpServer {
 		this.workerEventLoopGroup = new NioEventLoopGroup(16);
 	}
 
-	public void start() {
+	public void start() throws Exception {
 		this.serverBootstrap.group(bossEventLoopGroup, workerEventLoopGroup)
 			.channel(NioServerSocketChannel.class)
 			.option(ChannelOption.SO_BACKLOG, 1024)
@@ -42,15 +43,11 @@ public class FtpServer {
 				protected void initChannel(Channel channel) throws Exception {
 					channel.pipeline()
 						.addLast(new FtpRequestDecoder())
-						.addLast(new FtpServerHandler());
+						.addLast(new FtpResponseEncoder())
+						.addLast(new FtpServerHandler(serverContext));
 				}
 			});
-		try {
-			this.serverBootstrap.bind().sync();
-			log.info("begin to listen {}", this.serverContext.getServerConfig().getLocalAddress());
-		} catch (Exception e) {
-			log.error("failed to bind server to {}", this.serverContext.getServerConfig().getLocalAddress(), e);
-		}
+		this.serverBootstrap.bind().sync();
 	}
 
 	public void stop() {

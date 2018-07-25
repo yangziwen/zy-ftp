@@ -5,7 +5,15 @@ import io.github.yangziwen.zyftp.server.FtpResponse;
 import io.github.yangziwen.zyftp.server.FtpSession;
 
 public interface Command {
-	
-	public FtpResponse execute(FtpSession session, FtpRequest request);
 
+	FtpResponse execute(FtpSession session, FtpRequest request);
+
+	static FtpResponse createResponse(int code, FtpSession session) {
+		return createResponse(code, null, session);
+	}
+
+	static FtpResponse createResponse(int code, String subId, FtpSession session) {
+		String message = session.getServerContext().getMessageResource().getMessage(code, subId);
+		return new FtpResponse(code, message);
+	}
 }

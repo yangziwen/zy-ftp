@@ -9,6 +9,8 @@ public class User {
 	
 	private String password;
 	
+	private boolean isAuthenticated;
+	
 	private int maxIdleTime;
 	
 	private String homeDirectory;
