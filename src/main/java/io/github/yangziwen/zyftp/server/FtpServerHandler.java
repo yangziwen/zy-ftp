@@ -21,7 +21,7 @@ public class FtpServerHandler extends SimpleChannelInboundHandler<FtpRequest> {
 		if (command != null) {
 			response = command.execute(session, request);
 		} else {
-			response = Command.createResponse(FtpResponse.CODE_502_COMMAND_NOT_IMPLEMENTED, "not.implemented", session);
+			response = Command.createResponse(FtpResponse.CODE_502_COMMAND_NOT_IMPLEMENTED, "not.implemented", request, session);
 		}
 		sendResponse(response, ctx);
 	}

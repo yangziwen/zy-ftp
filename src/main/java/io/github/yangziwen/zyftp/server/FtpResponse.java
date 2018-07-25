@@ -18,6 +18,8 @@ public class FtpResponse {
 	
 	private String message;
 	
+	private String basicMsg;
+	
 	private ChannelPromise flushedPromise;
 	
 	public FtpResponse(int code) {

@@ -13,4 +13,8 @@ public class FtpRequest {
 	
 	private String argument;
 	
+	public String getRequestLine() {
+		return command + " " + argument;
+	}
+	
 }
