@@ -1,17 +1,69 @@
 package io.github.yangziwen.zyftp.server;
 
-public interface FtpServer {
+import io.github.yangziwen.zyftp.server.codec.FtpRequestDecoder;
+import io.netty.bootstrap.ServerBootstrap;
+import io.netty.buffer.PooledByteBufAllocator;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelOption;
+import io.netty.channel.EventLoopGroup;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.nio.NioServerSocketChannel;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+public class FtpServer {
 	
-	void start();
+	private final FtpServerContext serverContext;
 	
-	void stop();
+	private final ServerBootstrap serverBootstrap;
 	
-	boolean isStopped();
+	private final EventLoopGroup bossEventLoopGroup;
 	
-	void suspend();
+	private final EventLoopGroup workerEventLoopGroup;
 	
-	void consume();
-	
-	boolean isSuspended();
+	public FtpServer(FtpServerContext serverContext) {
+		this.serverContext = serverContext;
+		this.serverBootstrap = new ServerBootstrap();
+		this.bossEventLoopGroup = new NioEventLoopGroup(1);
+		this.workerEventLoopGroup = new NioEventLoopGroup(16);
+	}
+
+	public void start() {
+		this.serverBootstrap.group(bossEventLoopGroup, workerEventLoopGroup)
+			.channel(NioServerSocketChannel.class)
+			.option(ChannelOption.SO_BACKLOG, 1024)
+	        .option(ChannelOption.SO_REUSEADDR, true)
+	        .childOption(ChannelOption.TCP_NODELAY, true)
+	        .childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
+	        .localAddress(this.serverContext.getServerConfig().getLocalAddress())
+	        .childHandler(new ChannelInitializer<Channel>() {
+				@Override
+				protected void initChannel(Channel channel) throws Exception {
+					channel.pipeline()
+						.addLast(new FtpRequestDecoder())
+						.addLast(new FtpServerHandler());
+				}
+			});
+		try {
+			this.serverBootstrap.bind().sync();
+			log.info("begin to listen {}", this.serverContext.getServerConfig().getLocalAddress());
+		} catch (Exception e) {
+			log.error("failed to bind server to {}", this.serverContext.getServerConfig().getLocalAddress(), e);
+		}
+	}
+
+	public void stop() {
+		try {
+			this.workerEventLoopGroup.shutdownGracefully().sync();
+		} catch (Exception e) {
+			log.error("failed to shutdown the worker event loop group", e);
+		}
+		try {
+			this.bossEventLoopGroup.shutdownGracefully().sync();
+		} catch (InterruptedException e) {
+			log.error("failed to shutdown the boss event loop group", e);
+		}
+	}
 
 }
