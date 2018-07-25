@@ -16,8 +16,15 @@ public class FtpServerConfig {
 		this.localAddress = new InetSocketAddress("0.0.0.0", 8121);
 		this.connectionConfig = new ConnectionConfig();
 	}
-	
+
+	@Data
 	public static class ConnectionConfig {
+		
+		private boolean isAnonymousEnabled = true;
+		
+		private int maxAnonymousLogins = 20;
+		
+		private int maxLogins = 50;
 		
 	}
 

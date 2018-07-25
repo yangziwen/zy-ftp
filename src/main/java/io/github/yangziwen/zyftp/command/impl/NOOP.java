@@ -9,7 +9,7 @@ public class NOOP implements Command {
 
 	@Override
 	public FtpResponse execute(FtpSession session, FtpRequest request) {
-		return Command.createResponse(FtpResponse.CODE_200_COMMAND_OKAY, "NOOP", session);
+		return Command.createResponse(FtpResponse.REPLY_200_COMMAND_OKAY, "NOOP", session);
 	}
 
 }

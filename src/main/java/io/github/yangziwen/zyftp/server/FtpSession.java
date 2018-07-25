@@ -1,5 +1,7 @@
 package io.github.yangziwen.zyftp.server;
 
+import io.github.yangziwen.zyftp.config.FtpServerConfig;
+import io.github.yangziwen.zyftp.config.FtpServerConfig.ConnectionConfig;
 import io.github.yangziwen.zyftp.user.User;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
@@ -15,6 +17,8 @@ public class FtpSession {
 	
 	private User user;
 	
+	private boolean loggedIn;
+	
 	public FtpSession(ChannelHandlerContext context, FtpServerContext serverContext) {
 		this.context = context;
 		this.serverContext = serverContext;
@@ -28,6 +32,14 @@ public class FtpSession {
 		return this.user;
 	}
 	
+	public boolean isLoggedIn() {
+		return loggedIn;
+	}
+	
+	public void setLoggedIn(boolean loggedIn) {
+		this.loggedIn = loggedIn;
+	}
+	
 	public ChannelHandlerContext getContext() {
 		return context;
 	}
@@ -38,6 +50,14 @@ public class FtpSession {
 	
 	public Channel getChannel() {
 		return context.channel();
+	}
+	
+	public FtpServerConfig getServerConfig() {
+		return serverContext.getServerConfig();
+	}
+	
+	public ConnectionConfig getConnectionConfig() {
+		return getServerConfig().getConnectionConfig();
 	}
 	
 	public static FtpSession getOrCreateSession(ChannelHandlerContext ctx, FtpServerContext serverContext) {
