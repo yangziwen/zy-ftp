@@ -4,8 +4,10 @@ import java.util.Map;
 
 import com.google.common.collect.ImmutableMap;
 
+import io.github.yangziwen.zyftp.command.impl.FEAT;
 import io.github.yangziwen.zyftp.command.impl.HELP;
 import io.github.yangziwen.zyftp.command.impl.NOOP;
+import io.github.yangziwen.zyftp.command.impl.OPTS;
 import io.github.yangziwen.zyftp.command.impl.PASS;
 import io.github.yangziwen.zyftp.command.impl.QUIT;
 import io.github.yangziwen.zyftp.command.impl.SYST;
@@ -20,6 +22,8 @@ public interface CommandFactory {
 			.put("USER", new USER())
 			.put("PASS", new PASS())
 			.put("SYST", new SYST())
+			.put("FEAT", new FEAT())
+			.put("OPTS", new OPTS())
 			.build();
 
 	static Command getCommand(String name) {

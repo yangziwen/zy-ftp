@@ -18,8 +18,13 @@ public interface Command {
 	}
 
 	static FtpResponse createResponse(int code, String subId, FtpRequest request, FtpSession session) {
+		return createResponse(code, subId, request, session, null);
+	}
+
+	static FtpResponse createResponse(int code, String subId, FtpRequest request, FtpSession session, String basicMsg) {
 		String message = session.getServerContext().getMessageResource().getMessage(code, subId);
 		FtpResponse response = new FtpResponse(code, message);
+		response.setBasicMsg(basicMsg);
 		return ResponseMessageVariableReplacer.replaceVariables(code, subId, request, response, session);
 	}
 

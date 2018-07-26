@@ -30,6 +30,8 @@ public class FtpSession {
 
 	private FileSystemView fileSystemView;
 
+	private String[] mlstOptionTypes;
+
 	public FtpSession(ChannelHandlerContext context, FtpServerContext serverContext) {
 		this.context = context;
 		this.serverContext = serverContext;
@@ -69,6 +71,14 @@ public class FtpSession {
 
 	public FileSystemView getFileSystemView() {
 		return fileSystemView;
+	}
+
+	public void setMlstOptionTypes(String[] types) {
+		this.mlstOptionTypes = types;
+	}
+
+	public String[] getMlstOptionTypes() {
+		return mlstOptionTypes;
 	}
 
 	public void preLogin(String username) {

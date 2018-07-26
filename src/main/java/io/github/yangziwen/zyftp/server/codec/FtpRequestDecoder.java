@@ -7,11 +7,11 @@ import io.netty.handler.codec.LineBasedFrameDecoder;
 import io.netty.util.CharsetUtil;
 
 public class FtpRequestDecoder extends LineBasedFrameDecoder {
-	
+
 	public FtpRequestDecoder() {
 		super(4096);
 	}
-	
+
 	@Override
 	protected FtpRequest decode(ChannelHandlerContext ctx, ByteBuf buffer) throws Exception {
 		ByteBuf frame = (ByteBuf) super.decode(ctx, buffer);
@@ -20,7 +20,7 @@ public class FtpRequestDecoder extends LineBasedFrameDecoder {
 		}
 		String line = frame.toString(CharsetUtil.UTF_8);
 		String[] arr = line.split(" ", 2);
-		return new FtpRequest(arr[0], arr.length > 1 ? arr[1] : null);
+		return new FtpRequest(arr[0].trim(), arr.length > 1 ? arr[1].trim() : null);
 	}
 
 }
