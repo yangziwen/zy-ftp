@@ -23,7 +23,7 @@ public class ResponseMessageVariableReplacer {
 	public static final String SERVER_IP = "server.ip";
 
 	public static final String SERVER_PORT = "server.port";
-	
+
 	private ResponseMessageVariableReplacer() {}
 
 	public static FtpResponse replaceVariables(int code, String subId, FtpRequest request, FtpResponse response,
@@ -112,6 +112,9 @@ public class ResponseMessageVariableReplacer {
 		}
 
 		else if (varName.equals(OUTPUT_MSG)) {
+			if (basicMsg == null) {
+				return "{" + varName + "}";
+			}
 			return basicMsg;
 		}
 
