@@ -4,6 +4,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import io.github.yangziwen.zyftp.config.FtpServerConfig;
 import io.github.yangziwen.zyftp.config.FtpServerConfig.ConnectionConfig;
+import io.github.yangziwen.zyftp.filesystem.FileSystemView;
 import io.github.yangziwen.zyftp.user.User;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
@@ -26,6 +27,8 @@ public class FtpSession {
 	private User user;
 
 	private boolean loggedIn;
+
+	private FileSystemView fileSystemView;
 
 	public FtpSession(ChannelHandlerContext context, FtpServerContext serverContext) {
 		this.context = context;
@@ -64,6 +67,10 @@ public class FtpSession {
 		return getServerConfig().getConnectionConfig();
 	}
 
+	public FileSystemView getFileSystemView() {
+		return fileSystemView;
+	}
+
 	public void preLogin(String username) {
 		this.user = new User(username);
 		this.loggedIn = false;
@@ -71,6 +78,7 @@ public class FtpSession {
 
 	public void login(User user) {
 		this.user = user;
+		this.fileSystemView = new FileSystemView(user);
 		if (isAnonymous(user)) {
 			ANONYMOUS_LOGIN_USER_COUNTER.incrementAndGet();
 		}
@@ -84,6 +92,7 @@ public class FtpSession {
 		}
 		TOTAL_LOGIN_USER_COUNTER.decrementAndGet();
 		this.user = null;
+		this.fileSystemView = null;
 		this.loggedIn = false;
 	}
 
