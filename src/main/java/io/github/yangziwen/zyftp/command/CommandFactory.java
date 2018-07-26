@@ -11,6 +11,7 @@ import io.github.yangziwen.zyftp.command.impl.OPTS;
 import io.github.yangziwen.zyftp.command.impl.PASS;
 import io.github.yangziwen.zyftp.command.impl.QUIT;
 import io.github.yangziwen.zyftp.command.impl.SYST;
+import io.github.yangziwen.zyftp.command.impl.TYPE;
 import io.github.yangziwen.zyftp.command.impl.USER;
 
 public interface CommandFactory {
@@ -24,6 +25,7 @@ public interface CommandFactory {
 			.put("SYST", new SYST())
 			.put("FEAT", new FEAT())
 			.put("OPTS", new OPTS())
+			.put("TYPE", new TYPE())
 			.build();
 
 	static Command getCommand(String name) {

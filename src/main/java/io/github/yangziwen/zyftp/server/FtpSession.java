@@ -2,6 +2,7 @@ package io.github.yangziwen.zyftp.server;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
+import io.github.yangziwen.zyftp.common.DataType;
 import io.github.yangziwen.zyftp.config.FtpServerConfig;
 import io.github.yangziwen.zyftp.config.FtpServerConfig.ConnectionConfig;
 import io.github.yangziwen.zyftp.filesystem.FileSystemView;
@@ -29,6 +30,8 @@ public class FtpSession {
 	private boolean loggedIn;
 
 	private FileSystemView fileSystemView;
+
+	private DataType dataType = DataType.BINARY;
 
 	private String[] mlstOptionTypes;
 
@@ -79,6 +82,14 @@ public class FtpSession {
 
 	public String[] getMlstOptionTypes() {
 		return mlstOptionTypes;
+	}
+
+	public DataType getDataType() {
+		return dataType;
+	}
+
+	public void setDataType(DataType dataType) {
+		this.dataType = dataType;
 	}
 
 	public void preLogin(String username) {

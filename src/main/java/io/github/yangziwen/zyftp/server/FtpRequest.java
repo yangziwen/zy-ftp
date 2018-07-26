@@ -1,5 +1,7 @@
 package io.github.yangziwen.zyftp.server;
 
+import org.apache.commons.lang3.StringUtils;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -18,7 +20,7 @@ public class FtpRequest {
 	}
 
 	public boolean hasArgument() {
-		return argument != null;
+		return StringUtils.isNotBlank(argument);
 	}
 
 }
