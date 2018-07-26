@@ -8,31 +8,22 @@ import io.github.yangziwen.zyftp.server.FtpResponse;
 import io.github.yangziwen.zyftp.server.FtpSession;
 import io.github.yangziwen.zyftp.user.User;
 
-public class USER implements Command {
+public class PASS implements Command {
 
 	@Override
 	public FtpResponse execute(FtpSession session, FtpRequest request) {
 
-		String username = request.getArgument();
-		if (StringUtils.isBlank(username)) {
-			return createFailedResponse(FtpResponse.REPLY_501_SYNTAX_ERROR_IN_PARAMETERS_OR_ARGUMENTS, "USER", request, session);
+		User user = session.getUser();
+
+		if (user == null || StringUtils.isBlank(user.getUsername())) {
+			return createFailedResponse(FtpResponse.REPLY_503_BAD_SEQUENCE_OF_COMMANDS, "PASS", request, session);
 		}
 
 		if (session.isLoggedIn()) {
-			User user = session.getUser();
-			if (user == null || !username.equals(user.getUsername())) {
-				return createFailedResponse(FtpResponse.REPLY_530_INVALID_USER, "USER.invalid", request, session);
-			}
-			if (username.equals(user.getUsername())) {
-				return Command.createResponse(FtpResponse.REPLY_230_USER_LOGGED_IN, "USER", request, session);
-			}
+			return Command.createResponse(FtpResponse.REPLY_202_COMMAND_NOT_IMPLEMENTED, "PASS", request, session);
 		}
 
-		boolean isAnonymous = FtpSession.isAnonymous(username);
-
-		if (isAnonymous && !session.getConnectionConfig().isAnonymousEnabled()) {
-			return createFailedResponse(FtpResponse.REPLY_530_INVALID_USER, "USER.anonymous", request, session);
-		}
+		boolean isAnonymous = FtpSession.isAnonymous(user);
 
 		boolean tooManyLoggedInUsers = FtpSession.TOTAL_LOGIN_USER_COUNTER.get() >= session.getConnectionConfig().getMaxLogins();
 
@@ -44,18 +35,24 @@ public class USER implements Command {
 			return createFailedResponse(FtpResponse.REPLY_421_SERVICE_NOT_AVAILABLE_CLOSING_CONTROL_CONNECTION, "USER.anonymous", request, session);
 		}
 
-		// TODO user login limit check
+		String username = user.getUsername();
 
-		session.preLogin(username);
+		String password = request.getArgument();
 
-		String subId = isAnonymous ? "USER.anonymous" : "USER";
+		// TODO authenticate and get the valid user instance
 
-		return Command.createResponse(FtpResponse.REPLY_331_USER_NAME_OKAY_NEED_PASSWORD, subId, request, session);
+		User authenticatedUser = new User(username, password);
+
+		session.login(authenticatedUser);
+
+		// TODO initiate file system view
+
+		return Command.createResponse(FtpResponse.REPLY_230_USER_LOGGED_IN, "PASS", request, session);
 	}
 
 	private FtpResponse createFailedResponse(int code, String subId, FtpRequest request, FtpSession session) {
 		return Command.createResponse(code, subId, request, session).flushedPromise(session.getChannel().newPromise().addListener(future -> {
-			session.getChannel().close();
+			session.logout();
 		}));
 	}
 

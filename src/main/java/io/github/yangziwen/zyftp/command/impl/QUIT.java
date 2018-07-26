@@ -13,6 +13,9 @@ public class QUIT implements Command {
 		FtpResponse response = Command.createResponse(FtpResponse.REPLY_221_CLOSING_CONTROL_CONNECTION, "QUIT", session);
 		ChannelPromise flushedPromise = session.getContext().newPromise();
 		flushedPromise.addListener(future -> {
+			if (session.isLoggedIn()) {
+				session.logout();
+			}
 			session.getChannel().close().addListener(closeFuture -> {
 				// TODO close data connection
 			});
