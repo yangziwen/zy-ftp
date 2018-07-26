@@ -8,13 +8,17 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class FtpRequest {
-	
+
 	private String command;
-	
+
 	private String argument;
-	
+
 	public String getRequestLine() {
 		return command + " " + argument;
 	}
-	
+
+	public boolean hasArgument() {
+		return argument != null;
+	}
+
 }

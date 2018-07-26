@@ -4,6 +4,8 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 
+import org.apache.commons.lang3.StringUtils;
+
 import io.github.yangziwen.zyftp.server.FtpRequest;
 import io.github.yangziwen.zyftp.server.FtpResponse;
 import io.github.yangziwen.zyftp.server.FtpSession;
@@ -29,6 +31,9 @@ public class ResponseMessageVariableReplacer {
 	public static FtpResponse replaceVariables(int code, String subId, FtpRequest request, FtpResponse response,
 			FtpSession session) {
 		String message = response.getMessage();
+		if (StringUtils.isBlank(message)) {
+			return response;
+		}
 		int startIndex = 0;
 		int openIndex = message.indexOf('{', startIndex);
 		if (openIndex == -1) {
