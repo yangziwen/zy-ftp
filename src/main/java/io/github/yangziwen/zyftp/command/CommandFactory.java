@@ -8,6 +8,7 @@ import io.github.yangziwen.zyftp.command.impl.CDUP;
 import io.github.yangziwen.zyftp.command.impl.CWD;
 import io.github.yangziwen.zyftp.command.impl.FEAT;
 import io.github.yangziwen.zyftp.command.impl.HELP;
+import io.github.yangziwen.zyftp.command.impl.LIST;
 import io.github.yangziwen.zyftp.command.impl.MLSD;
 import io.github.yangziwen.zyftp.command.impl.NOOP;
 import io.github.yangziwen.zyftp.command.impl.OPTS;
@@ -36,6 +37,7 @@ public interface CommandFactory {
 			.put("CWD", new CWD())
 			.put("CDUP", new CDUP())
 			.put("MLSD", new MLSD())
+			.put("LIST", new LIST())
 			.build();
 
 	static Command getCommand(String name) {

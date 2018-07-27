@@ -3,7 +3,9 @@ package io.github.yangziwen.zyftp.filesystem;
 import org.apache.commons.io.FilenameUtils;
 
 import io.github.yangziwen.zyftp.user.User;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class FileSystemView {
 
 	private User user;
@@ -27,16 +29,21 @@ public class FileSystemView {
 	}
 
 	public boolean changeCurrentDirectory(String dir) {
-		FileView newDirectory = new FileView(user, FilenameUtils.concat(currentDirectory.getVirtualPath(), dir));
-		if (newDirectory.isLegalFile() && newDirectory.isDirectory()) {
-			this.currentDirectory = newDirectory;
-			return true;
+		try {
+			FileView newDirectory = new FileView(user, FilenameUtils.concat(currentDirectory.getVirtualPath(), dir));
+			if (newDirectory.isLegalFile() && newDirectory.isDirectory()) {
+				this.currentDirectory = newDirectory;
+				return true;
+			}
+			return false;
+		} catch (Exception e) {
+			log.error("failed to change current directory from {} to {}", currentDirectory.getVirtualPath(), dir, e);
+			return false;
 		}
-		return false;
 	}
 
 	public FileView getFile(String filePath) {
-		FileView file = new FileView(user, filePath);
+		FileView file = new FileView(user, FilenameUtils.concat(getCurrentDirectory().getVirtualPath(), filePath));
 		return file.isLegalFile() ? file : null;
 	}
 

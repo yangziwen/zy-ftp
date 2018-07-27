@@ -17,7 +17,9 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.util.concurrent.Promise;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class FtpPassiveDataServer {
 
 	private FtpSession session;
@@ -69,7 +71,7 @@ public class FtpPassiveDataServer {
 	public Promise<Boolean> writeAndFlushData(FtpDataWriter writer) {
 		Promise<Boolean> promise = session.getWorkerEventLoopGroup().next().newPromise();
 		if (writer == null || CollectionUtils.isEmpty(clientChannels)) {
-			shutdown().addListener(f -> promise.setSuccess(false));
+			promise.setSuccess(false);
 		} else {
 			writer.writeAndFlushData(clientChannels.iterator().next()).addListener(f -> {
 				promise.setSuccess(true);
@@ -85,6 +87,7 @@ public class FtpPassiveDataServer {
 		} else {
 			closeClientChannels(clientChannels).addListener(f1 -> {
 				serverChannelFuture.channel().close().addListener(f2 -> {
+					log.info("passive data server of session{} is shut down", session);
 					promise.setSuccess(null);
 				});
 			});

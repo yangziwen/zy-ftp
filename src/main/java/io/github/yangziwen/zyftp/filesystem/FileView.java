@@ -27,6 +27,9 @@ public class FileView {
 	private String realPath;
 
 	public FileView(User user, String path) {
+		if (StringUtils.isBlank(path)) {
+			path = "/";
+		}
 		this.virtualPath = "/".equals(path) ? "/" : StringUtils.stripEnd(path, "/");
 		this.user = user;
 		this.file = new File(user.getHomeDirectory(), StringUtils.stripStart(this.virtualPath, "/"));
