@@ -4,10 +4,17 @@ import io.github.yangziwen.zyftp.server.FtpRequest;
 import io.github.yangziwen.zyftp.server.FtpResponse;
 import io.github.yangziwen.zyftp.server.FtpSession;
 import io.github.yangziwen.zyftp.util.ResponseMessageVariableReplacer;
+import io.netty.util.concurrent.Promise;
 
 public interface Command {
 
 	FtpResponse execute(FtpSession session, FtpRequest request);
+
+	default Promise<FtpResponse> executeAsync(FtpSession session, FtpRequest request) {
+		Promise<FtpResponse> promise = session.getContext().channel().eventLoop().newPromise();
+		promise.setSuccess(execute(session, request));
+		return promise;
+	}
 
 	static FtpResponse createResponse(int code, FtpSession session) {
 		return createResponse(code, null, session);

@@ -17,7 +17,7 @@ public class QUIT implements Command {
 				session.logout();
 			}
 			session.getChannel().close().addListener(closeFuture -> {
-				// TODO close data connection
+				session.destroy();
 			});
 		});
 		response.setFlushedPromise(flushedPromise);

@@ -45,4 +45,63 @@ public class FileView {
 		return true;
 	}
 
+	public boolean isFile() {
+		return file.isFile();
+	}
+
+	public long getSize() {
+		return file.length();
+	}
+
+	public long getLastModified() {
+		return file.lastModified();
+	}
+
+	public boolean isDirectory() {
+		return file.isDirectory();
+	}
+
+	public boolean isReadable() {
+		return file.canRead();
+	}
+
+	public boolean isWritable() {
+		return file.canWrite();
+	}
+
+    public int getLinkCount() {
+        return file.isDirectory() ? 3 : 1;
+    }
+
+    public String getOwnerName() {
+        return "user";
+    }
+
+    public String getGroupName() {
+        return "group";
+    }
+
+    public String getName() {
+
+        // root - the short name will be '/'
+        if (virtualPath.equals("/")) {
+            return "/";
+        }
+
+        // strip the last '/'
+        String shortName = virtualPath;
+        int filelen = virtualPath.length();
+        if (shortName.charAt(filelen - 1) == '/') {
+            shortName = shortName.substring(0, filelen - 1);
+        }
+
+        // return from the last '/'
+        int slashIndex = shortName.lastIndexOf('/');
+        if (slashIndex != -1) {
+            shortName = shortName.substring(slashIndex + 1);
+        }
+        return shortName;
+    }
+
+
 }

@@ -14,20 +14,21 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class FtpServer {
-	
+
 	private final FtpServerContext serverContext;
-	
+
 	private final ServerBootstrap serverBootstrap;
-	
+
 	private final EventLoopGroup bossEventLoopGroup;
-	
+
 	private final EventLoopGroup workerEventLoopGroup;
-	
+
 	public FtpServer(FtpServerContext serverContext) {
 		this.serverContext = serverContext;
 		this.serverBootstrap = new ServerBootstrap();
 		this.bossEventLoopGroup = new NioEventLoopGroup(1);
 		this.workerEventLoopGroup = new NioEventLoopGroup(16);
+		serverContext.setServer(this);
 	}
 
 	public void start() throws Exception {
@@ -61,6 +62,14 @@ public class FtpServer {
 		} catch (InterruptedException e) {
 			log.error("failed to shutdown the boss event loop group", e);
 		}
+	}
+
+	public EventLoopGroup getBossEventLoopGroup() {
+		return bossEventLoopGroup;
+	}
+
+	public EventLoopGroup getWorkerEventLoopGroup() {
+		return workerEventLoopGroup;
 	}
 
 }

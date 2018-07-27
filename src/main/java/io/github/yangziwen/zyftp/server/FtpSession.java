@@ -9,6 +9,7 @@ import io.github.yangziwen.zyftp.filesystem.FileSystemView;
 import io.github.yangziwen.zyftp.user.User;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.EventLoopGroup;
 import io.netty.util.AttributeKey;
 
 public class FtpSession {
@@ -34,6 +35,10 @@ public class FtpSession {
 	private DataType dataType = DataType.BINARY;
 
 	private String[] mlstOptionTypes;
+
+	private FtpDataWriter dataWriter;
+
+	private FtpPassiveDataServer passiveDataServer;
 
 	public FtpSession(ChannelHandlerContext context, FtpServerContext serverContext) {
 		this.context = context;
@@ -64,6 +69,14 @@ public class FtpSession {
 		return context.channel();
 	}
 
+	public EventLoopGroup getBossEventLoopGroup() {
+		return getServerContext().getServer().getBossEventLoopGroup();
+	}
+
+	public EventLoopGroup getWorkerEventLoopGroup() {
+		return getServerContext().getServer().getWorkerEventLoopGroup();
+	}
+
 	public FtpServerConfig getServerConfig() {
 		return serverContext.getServerConfig();
 	}
@@ -92,6 +105,22 @@ public class FtpSession {
 		this.dataType = dataType;
 	}
 
+	public void setDataWriter(FtpDataWriter dataWriter) {
+		this.dataWriter = dataWriter;
+	}
+
+	public FtpDataWriter getDataWriter() {
+		return dataWriter;
+	}
+
+	public void setPassiveDataServer(FtpPassiveDataServer passiveDataServer) {
+		this.passiveDataServer = passiveDataServer;
+	}
+
+	public FtpPassiveDataServer getPassiveDataServer() {
+		return passiveDataServer;
+	}
+
 	public void preLogin(String username) {
 		this.user = new User(username);
 		this.loggedIn = false;
@@ -115,6 +144,16 @@ public class FtpSession {
 		this.user = null;
 		this.fileSystemView = null;
 		this.loggedIn = false;
+	}
+
+	public void shutdownPassiveDataServer() {
+		if (passiveDataServer != null) {
+			passiveDataServer.shutdown();
+		}
+	}
+
+	public void destroy() {
+		shutdownPassiveDataServer();
 	}
 
 	public static boolean isAnonymous(User user) {

@@ -9,6 +9,7 @@ import io.github.yangziwen.zyftp.command.impl.HELP;
 import io.github.yangziwen.zyftp.command.impl.NOOP;
 import io.github.yangziwen.zyftp.command.impl.OPTS;
 import io.github.yangziwen.zyftp.command.impl.PASS;
+import io.github.yangziwen.zyftp.command.impl.PASV;
 import io.github.yangziwen.zyftp.command.impl.QUIT;
 import io.github.yangziwen.zyftp.command.impl.SYST;
 import io.github.yangziwen.zyftp.command.impl.TYPE;
@@ -26,6 +27,7 @@ public interface CommandFactory {
 			.put("FEAT", new FEAT())
 			.put("OPTS", new OPTS())
 			.put("TYPE", new TYPE())
+			.put("PASV", new PASV())
 			.build();
 
 	static Command getCommand(String name) {
