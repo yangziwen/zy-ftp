@@ -1,5 +1,7 @@
 package io.github.yangziwen.zyftp.user;
 
+import java.io.File;
+
 import org.apache.commons.lang3.StringUtils;
 
 import io.github.yangziwen.zyftp.filesystem.FileView;
@@ -28,7 +30,10 @@ public class User {
 	}
 
 	public String getHomeDirectory() {
-		return StringUtils.isNotBlank(homeDirectory) ? homeDirectory : FileView.DEFAULT_HOME_DIRECTORY;
+		if (StringUtils.isBlank(homeDirectory)) {
+			homeDirectory =  new File(FileView.DEFAULT_HOME_DIRECTORY).getAbsolutePath();
+		}
+		return homeDirectory;
 	}
 
 }

@@ -2,7 +2,6 @@ package io.github.yangziwen.zyftp.filesystem;
 
 import java.io.File;
 
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import io.github.yangziwen.zyftp.user.User;
@@ -22,14 +21,14 @@ public class FileView {
 	private String realPath;
 
 	public FileView(User user, String path) {
-		this.virtualPath = FilenameUtils.getPath(path);
+		this.virtualPath = "/".equals(path) ? "/" : StringUtils.stripEnd(path, "/");
 		this.user = user;
 		this.file = new File(user.getHomeDirectory(), StringUtils.stripStart(this.virtualPath, "/"));
-		this.realPath = FilenameUtils.getPath(file.getAbsolutePath());
+		this.realPath = file.getAbsolutePath();
 	}
 
 	public boolean doesExist() {
-		return this.file.exists() && isLegalFile();
+		return this.file.exists();
 	}
 
 	public boolean isLegalFile() {

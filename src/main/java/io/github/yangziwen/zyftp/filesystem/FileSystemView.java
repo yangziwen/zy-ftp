@@ -1,5 +1,7 @@
 package io.github.yangziwen.zyftp.filesystem;
 
+import org.apache.commons.io.FilenameUtils;
+
 import io.github.yangziwen.zyftp.user.User;
 
 public class FileSystemView {
@@ -25,8 +27,8 @@ public class FileSystemView {
 	}
 
 	public boolean changeCurrentDirectory(String dir) {
-		FileView newDirectory = new FileView(user, dir);
-		if (newDirectory.isLegalFile()) {
+		FileView newDirectory = new FileView(user, FilenameUtils.concat(currentDirectory.getVirtualPath(), dir));
+		if (newDirectory.isLegalFile() && newDirectory.isDirectory()) {
 			this.currentDirectory = newDirectory;
 			return true;
 		}

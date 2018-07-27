@@ -4,12 +4,14 @@ import java.util.Map;
 
 import com.google.common.collect.ImmutableMap;
 
+import io.github.yangziwen.zyftp.command.impl.CWD;
 import io.github.yangziwen.zyftp.command.impl.FEAT;
 import io.github.yangziwen.zyftp.command.impl.HELP;
 import io.github.yangziwen.zyftp.command.impl.NOOP;
 import io.github.yangziwen.zyftp.command.impl.OPTS;
 import io.github.yangziwen.zyftp.command.impl.PASS;
 import io.github.yangziwen.zyftp.command.impl.PASV;
+import io.github.yangziwen.zyftp.command.impl.PWD;
 import io.github.yangziwen.zyftp.command.impl.QUIT;
 import io.github.yangziwen.zyftp.command.impl.SYST;
 import io.github.yangziwen.zyftp.command.impl.TYPE;
@@ -28,6 +30,8 @@ public interface CommandFactory {
 			.put("OPTS", new OPTS())
 			.put("TYPE", new TYPE())
 			.put("PASV", new PASV())
+			.put("PWD", new PWD())
+			.put("CWD", new CWD())
 			.build();
 
 	static Command getCommand(String name) {
