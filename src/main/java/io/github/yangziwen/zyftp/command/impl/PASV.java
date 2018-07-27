@@ -39,8 +39,10 @@ public class PASV implements Command {
     public static String encode(InetSocketAddress address) {
         InetAddress servAddr = address.getAddress();
         int servPort = address.getPort();
-        return servAddr.getHostAddress().replace('.', ',') + ','
-                + (servPort >> 8) + ',' + (servPort & 0xFF);
+        // TODO
+        return "127,0,0,1," + (servPort >> 8) + "," + (servPort & 0xFF);
+//        return servAddr.getHostAddress().replace('.', ',') + ','
+//                + (servPort >> 8) + ',' + (servPort & 0xFF);
     }
 
 }

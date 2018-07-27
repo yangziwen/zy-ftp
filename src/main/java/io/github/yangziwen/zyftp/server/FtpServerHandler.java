@@ -2,6 +2,7 @@ package io.github.yangziwen.zyftp.server;
 
 import io.github.yangziwen.zyftp.command.Command;
 import io.github.yangziwen.zyftp.command.CommandFactory;
+import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.util.concurrent.Promise;
@@ -37,8 +38,8 @@ public class FtpServerHandler extends SimpleChannelInboundHandler<FtpRequest> {
     	sendResponse(response, ctx);
     }
 
-    private void sendResponse(FtpResponse response, ChannelHandlerContext ctx) {
-    	ctx.writeAndFlush(response).addListener(future -> {
+    public static ChannelFuture sendResponse(FtpResponse response, ChannelHandlerContext ctx) {
+    	return ctx.writeAndFlush(response).addListener(future -> {
     		if (response.getFlushedPromise() != null) {
     			response.getFlushedPromise().setSuccess();
     		}

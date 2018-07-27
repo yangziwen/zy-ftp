@@ -1,7 +1,13 @@
 package io.github.yangziwen.zyftp.filesystem;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import io.github.yangziwen.zyftp.user.User;
@@ -56,6 +62,10 @@ public class FileView {
 		return file.lastModified();
 	}
 
+	public boolean isHidden() {
+		return file.isHidden();
+	}
+
 	public boolean isDirectory() {
 		return file.isDirectory();
 	}
@@ -100,6 +110,20 @@ public class FileView {
             shortName = shortName.substring(slashIndex + 1);
         }
         return shortName;
+    }
+
+    public List<FileView> listFiles() {
+    	if (!file.isDirectory()) {
+    		return Collections.emptyList();
+    	}
+    	File[] files = file.listFiles();
+    	if (ArrayUtils.isEmpty(files)) {
+    		return Collections.emptyList();
+    	}
+    	return Arrays.stream(files)
+    		.map(file -> file.getName())
+    		.map(name -> new FileView(user, FilenameUtils.concat(virtualPath, name)))
+    		.collect(Collectors.toList());
     }
 
 

@@ -71,8 +71,8 @@ public class FtpPassiveDataServer {
 		if (writer == null || CollectionUtils.isEmpty(clientChannels)) {
 			shutdown().addListener(f -> promise.setSuccess(false));
 		} else {
-			writer.writeAndFlushData(clientChannels.iterator().next()).addListener(f1 -> {
-				shutdown().addListener(f -> promise.setSuccess(true));
+			writer.writeAndFlushData(clientChannels.iterator().next()).addListener(f -> {
+				promise.setSuccess(true);
 			});
 		}
 		return promise;
