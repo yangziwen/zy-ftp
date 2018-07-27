@@ -4,6 +4,7 @@ import java.util.Map;
 
 import com.google.common.collect.ImmutableMap;
 
+import io.github.yangziwen.zyftp.command.impl.CDUP;
 import io.github.yangziwen.zyftp.command.impl.CWD;
 import io.github.yangziwen.zyftp.command.impl.FEAT;
 import io.github.yangziwen.zyftp.command.impl.HELP;
@@ -32,6 +33,7 @@ public interface CommandFactory {
 			.put("PASV", new PASV())
 			.put("PWD", new PWD())
 			.put("CWD", new CWD())
+			.put("CDUP", new CDUP())
 			.build();
 
 	static Command getCommand(String name) {
