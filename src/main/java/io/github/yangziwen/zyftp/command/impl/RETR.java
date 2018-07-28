@@ -32,15 +32,27 @@ public class RETR implements Command {
 		if (!session.isDataConnectionReady()) {
 			return Command.createResponse(FtpResponse.REPLY_425_CANT_OPEN_DATA_CONNECTION, "RETR", request, session, file.getVirtualPath());
 		}
+		long offset = parseOffset(session.getCommandState().getRequest("REST"));
 		FtpResponse response = Command.createResponse(FtpResponse.REPLY_150_FILE_STATUS_OKAY, "RETR", session);
 		response.setFlushedPromise(session.getContext().newPromise().addListener(f -> {
-			doSendFileContent(session, request, file);
+			doSendFileContent(session, request, file, offset);
 		}));
 		return response;
 	}
 
-	private void doSendFileContent(FtpSession session, FtpRequest request, FileView file) {
-		FileRegion region = new DefaultFileRegion(file.getRealFile(), 0, file.getSize());
+	private long parseOffset(FtpRequest request) {
+		if (request == null || !request.hasArgument()) {
+			return 0L;
+		}
+		try {
+			return Long.parseLong(request.getArgument());
+		} catch (Exception e) {
+			return 0L;
+		}
+	}
+
+	private void doSendFileContent(FtpSession session, FtpRequest request, FileView file, long offset) {
+		FileRegion region = new DefaultFileRegion(file.getRealFile(), offset, file.getSize());
 		session.writeAndFlushData(new FtpDataWriter() {
 			@Override
 			public ChannelFuture writeAndFlushData(Channel ctx) {

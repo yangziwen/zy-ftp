@@ -17,6 +17,9 @@ public class OtherState extends AbstractCommandState<OtherState> {
 		if ("RNFR".equals(request.getCommand()) && request.hasArgument()) {
 			return new RenameFromState().putRequest("RNFR", request);
 		}
+		if ("REST".equals(request.getCommand()) && request.hasArgument()) {
+			return new RetrState(requestMap).putRequest("REST", request);
+		}
 		return this;
 	}
 
