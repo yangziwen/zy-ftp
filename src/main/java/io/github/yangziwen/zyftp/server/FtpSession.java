@@ -3,7 +3,7 @@ package io.github.yangziwen.zyftp.server;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import io.github.yangziwen.zyftp.common.DataType;
-import io.github.yangziwen.zyftp.common.TransportMode;
+import io.github.yangziwen.zyftp.common.DataConnectionType;
 import io.github.yangziwen.zyftp.config.FtpServerConfig;
 import io.github.yangziwen.zyftp.config.FtpServerConfig.ConnectionConfig;
 import io.github.yangziwen.zyftp.filesystem.FileSystemView;
@@ -35,7 +35,7 @@ public class FtpSession {
 
 	private DataType dataType = DataType.BINARY;
 
-	private TransportMode transportMode;
+	private DataConnectionType dataConnectionType;
 
 	private String[] mlstOptionTypes;
 
@@ -108,12 +108,12 @@ public class FtpSession {
 		this.dataType = dataType;
 	}
 
-	public TransportMode getTransportMode() {
-		return transportMode;
+	public DataConnectionType getDataConnectionType() {
+		return dataConnectionType;
 	}
 
-	public void setTransportMode(TransportMode transportMode) {
-		this.transportMode = transportMode;
+	public void setDataConnectionType(DataConnectionType dataConnectionType) {
+		this.dataConnectionType = dataConnectionType;
 	}
 
 	public void setDataWriter(FtpDataWriter dataWriter) {

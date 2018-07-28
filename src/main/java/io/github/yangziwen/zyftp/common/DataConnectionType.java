@@ -1,6 +1,6 @@
 package io.github.yangziwen.zyftp.common;
 
-public enum TransportMode {
+public enum DataConnectionType {
 
 	PASV,
 
