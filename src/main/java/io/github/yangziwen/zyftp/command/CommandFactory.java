@@ -20,6 +20,7 @@ import io.github.yangziwen.zyftp.command.impl.PASS;
 import io.github.yangziwen.zyftp.command.impl.PASV;
 import io.github.yangziwen.zyftp.command.impl.PWD;
 import io.github.yangziwen.zyftp.command.impl.QUIT;
+import io.github.yangziwen.zyftp.command.impl.RETR;
 import io.github.yangziwen.zyftp.command.impl.RMD;
 import io.github.yangziwen.zyftp.command.impl.SYST;
 import io.github.yangziwen.zyftp.command.impl.TYPE;
@@ -48,6 +49,7 @@ public interface CommandFactory {
 			.put("RMD", new RMD())
 			.put("DELE", new DELE())
 			.put("ABOR", new ABOR())
+			.put("RETR", new RETR())
 			.build();
 
 	static Command getCommand(String name) {

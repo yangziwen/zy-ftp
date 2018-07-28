@@ -25,19 +25,22 @@ public class MLSD implements Command {
 
 	@Override
 	public FtpResponse execute(FtpSession session, FtpRequest request) {
-		FtpResponse statusOkResponse = Command.createResponse(FtpResponse.REPLY_150_FILE_STATUS_OKAY, "MLSD", session);
-		statusOkResponse.setFlushedPromise(session.getContext().newPromise().addListener(f -> {
+		if (!session.isDataConnectionReady()) {
+			return Command.createResponse(FtpResponse.REPLY_503_BAD_SEQUENCE_OF_COMMANDS, null, request, session, "PORT or PASV must be issued first");
+		}
+		FtpResponse response = Command.createResponse(FtpResponse.REPLY_150_FILE_STATUS_OKAY, "MLSD", session);
+		response.setFlushedPromise(session.getContext().newPromise().addListener(f -> {
 			doSendFileList(session, request);
 		}));
-		return statusOkResponse;
+		return response;
 	}
 
-	public void doSendFileList(FtpSession session, FtpRequest request) {
+	private void doSendFileList(FtpSession session, FtpRequest request) {
 		try {
 			ListArgument parsedArg = ListArgument.parse(request.getArgument());
 			FileFormatter formatter = new MLSTFileFormatter(session.getMlstOptionTypes());
 			String content = directoryLister.listFiles(parsedArg, session.getFileSystemView(), formatter);
-			session.getPassiveDataServer().writeAndFlushData(new FtpDataWriter() {
+			session.writeAndFlushData(new FtpDataWriter() {
 				@Override
 				public ChannelFuture writeAndFlushData(Channel channel) {
 					byte[] bytes = content.getBytes(CharsetUtil.UTF_8);
@@ -47,7 +50,7 @@ public class MLSD implements Command {
 			}).addListener(f -> {
 				FtpServerHandler.sendResponse(Command.createResponse(FtpResponse.REPLY_226_CLOSING_DATA_CONNECTION, "MLSD", session), session.getContext())
 					.addListener(f2 -> {
-						session.getPassiveDataServer().shutdown();
+						session.shutdownDataConnection();
 					});
 			});
 		} catch (IOException e) {

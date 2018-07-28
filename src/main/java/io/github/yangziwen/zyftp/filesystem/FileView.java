@@ -11,9 +11,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import io.github.yangziwen.zyftp.user.User;
-import lombok.Getter;
 
-@Getter
 public class FileView {
 
 	public static final String DEFAULT_HOME_DIRECTORY = "res/";
@@ -25,6 +23,22 @@ public class FileView {
 	private String virtualPath;
 
 	private String realPath;
+
+	public String getVirtualPath() {
+		return virtualPath;
+	}
+
+	public String getRealPath() {
+		return realPath;
+	}
+
+	public User getUser() {
+		return user;
+	}
+
+	public File getRealFile() {
+		return file;
+	}
 
 	public FileView(User user, String path) {
 		if (StringUtils.isBlank(path)) {

@@ -2,8 +2,8 @@ package io.github.yangziwen.zyftp.server;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-import io.github.yangziwen.zyftp.common.DataType;
 import io.github.yangziwen.zyftp.common.DataConnectionType;
+import io.github.yangziwen.zyftp.common.DataType;
 import io.github.yangziwen.zyftp.config.FtpServerConfig;
 import io.github.yangziwen.zyftp.config.FtpServerConfig.ConnectionConfig;
 import io.github.yangziwen.zyftp.filesystem.FileSystemView;
@@ -12,6 +12,7 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.EventLoopGroup;
 import io.netty.util.AttributeKey;
+import io.netty.util.concurrent.Promise;
 
 public class FtpSession {
 
@@ -132,6 +133,15 @@ public class FtpSession {
 		return passiveDataServer;
 	}
 
+	public Promise<Boolean> writeAndFlushData(FtpDataWriter writer) {
+		if (dataConnectionType == DataConnectionType.PASV) {
+			return passiveDataServer.writeAndFlushData(writer);
+		} else {
+			// TODO PORT
+			return getWorkerEventLoopGroup().next().<Boolean>newPromise().setSuccess(false);
+		}
+	}
+
 	public void preLogin(String username) {
 		this.user = new User(username);
 		this.loggedIn = false;
@@ -157,14 +167,28 @@ public class FtpSession {
 		this.loggedIn = false;
 	}
 
-	public void shutdownPassiveDataServer() {
+	private Promise<Void> shutdownPassiveDataServer() {
 		if (passiveDataServer != null) {
-			passiveDataServer.shutdown();
+			return passiveDataServer.shutdown();
 		}
+		// TODO PORT
+		return getWorkerEventLoopGroup().next().<Void>newPromise().setFailure(null);
+	}
+
+	public Promise<Void> shutdownDataConnection() {
+		return shutdownPassiveDataServer();
 	}
 
 	public void destroy() {
 		shutdownPassiveDataServer();
+	}
+
+	public boolean isDataConnectionReady() {
+		if (dataConnectionType == DataConnectionType.PASV) {
+			return passiveDataServer != null && passiveDataServer.isRunnning();
+		}
+		// TODO PORT
+		return false;
 	}
 
 	public static boolean isAnonymous(User user) {
