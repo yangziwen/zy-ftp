@@ -47,4 +47,17 @@ public class FtpServerHandler extends SimpleChannelInboundHandler<FtpRequest> {
     	});
     }
 
+    @Override
+	public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
+    	if (FtpSession.isAllIdleStateEvent(evt)) {
+    		FtpSession session = FtpSession.getOrCreateSession(ctx, serverContext);
+    		if (session.isLoggedIn()) {
+    			session.logout();
+    		}
+    		session.getChannel().close().addListener(closeFuture -> {
+    			session.destroy();
+    		});
+    	}
+    }
+
 }

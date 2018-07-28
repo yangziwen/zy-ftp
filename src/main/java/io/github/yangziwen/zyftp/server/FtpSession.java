@@ -13,6 +13,8 @@ import io.github.yangziwen.zyftp.user.User;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.EventLoopGroup;
+import io.netty.handler.timeout.IdleState;
+import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.util.AttributeKey;
 import io.netty.util.concurrent.Promise;
 
@@ -218,6 +220,14 @@ public class FtpSession {
 			channel.attr(SESSION_KEY).setIfAbsent(new FtpSession(ctx, serverContext));
 		}
 		return channel.attr(SESSION_KEY).get();
+	}
+
+	public static boolean isAllIdleStateEvent(Object evt) {
+		if (!IdleStateEvent.class.isInstance(evt)) {
+			return false;
+		}
+		IdleStateEvent event = (IdleStateEvent) evt;
+		return event.state() == IdleState.ALL_IDLE;
 	}
 
 }

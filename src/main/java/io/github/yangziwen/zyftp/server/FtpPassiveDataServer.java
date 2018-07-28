@@ -11,11 +11,13 @@ import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.util.concurrent.Promise;
 import lombok.extern.slf4j.Slf4j;
 
@@ -58,7 +60,8 @@ public class FtpPassiveDataServer {
 				@Override
 				protected void initChannel(Channel channel) throws Exception {
 					channel.pipeline()
-						.addLast(new ChannelInboundHandlerAdapter());
+						.addLast(new IdleStateHandler(0, 0, session.getServerConfig().getDataConnectionMaxIdleSeconds()))
+						.addLast(new PassiveDataServerHandler());
 					clientChannels.add(channel);
 				}
 			}).bind(port).addListener(f -> {
@@ -110,6 +113,26 @@ public class FtpPassiveDataServer {
 			});
 		});
 		return promise;
+	}
+
+	class PassiveDataServerHandler extends ChannelInboundHandlerAdapter {
+
+		@Override
+		public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
+			if (FtpSession.isAllIdleStateEvent(evt)) {
+				ChannelFuture future = ctx.channel().close();
+				clientChannels.remove(future.channel());
+				if (!clientChannels.isEmpty()) {
+					return;
+				}
+				future.addListener(f1 -> {
+					shutdown().addListener(f2 -> {
+						session.setPassiveDataServer(null);
+					});
+				});
+			}
+	    }
+
 	}
 
 }

@@ -12,6 +12,10 @@ public class FtpServerConfig {
 
 	private String passiveAddress = "127.0.0.1";	// TODO 需要可配置
 
+	private int maxIdleSeconds = 120;
+
+	private int dataConnectionMaxIdleSeconds = 30;
+
 	private ConnectionConfig connectionConfig;
 
 	public FtpServerConfig() {

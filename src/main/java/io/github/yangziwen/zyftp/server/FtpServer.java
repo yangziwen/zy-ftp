@@ -10,6 +10,7 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.handler.timeout.IdleStateHandler;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -45,6 +46,7 @@ public class FtpServer {
 					channel.pipeline()
 						.addLast(new FtpRequestDecoder())
 						.addLast(new FtpResponseEncoder())
+						.addLast(new IdleStateHandler(0, 0, serverContext.getServerConfig().getMaxIdleSeconds()))
 						.addLast(new FtpServerHandler(serverContext));
 				}
 			});
