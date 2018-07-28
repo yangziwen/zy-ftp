@@ -18,6 +18,7 @@ public class FtpServerHandler extends SimpleChannelInboundHandler<FtpRequest> {
 	@Override
 	protected void channelRead0(ChannelHandlerContext ctx, FtpRequest request) throws Exception {
 		FtpSession session = FtpSession.getOrCreateSession(ctx, serverContext);
+		session.getCommandState().transferTo(request, session);
 		Command command = CommandFactory.getCommand(request.getCommand());
 		FtpResponse response = null;
 		if (command != null) {

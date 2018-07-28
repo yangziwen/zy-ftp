@@ -158,6 +158,13 @@ public class FileView {
     	return file.delete();
     }
 
+    public boolean moveTo(FileView dest) {
+    	if (dest == null || dest.doesExist()) {
+    		return false;
+    	}
+    	return getRealFile().renameTo(dest.getRealFile());
+    }
+
     @Override
     public boolean equals(Object other) {
     	if (!FileView.class.isInstance(other)) {

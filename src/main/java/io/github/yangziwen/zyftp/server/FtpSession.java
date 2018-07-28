@@ -2,6 +2,8 @@ package io.github.yangziwen.zyftp.server;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
+import io.github.yangziwen.zyftp.command.impl.state.CommandState;
+import io.github.yangziwen.zyftp.command.impl.state.OtherState;
 import io.github.yangziwen.zyftp.common.DataConnectionType;
 import io.github.yangziwen.zyftp.common.DataType;
 import io.github.yangziwen.zyftp.config.FtpServerConfig;
@@ -28,6 +30,8 @@ public class FtpSession {
 
 	private FtpServerContext serverContext;
 
+	private CommandState commandState;
+
 	private User user;
 
 	private boolean loggedIn;
@@ -47,6 +51,15 @@ public class FtpSession {
 	public FtpSession(ChannelHandlerContext context, FtpServerContext serverContext) {
 		this.context = context;
 		this.serverContext = serverContext;
+		this.commandState = OtherState.INSTANCE;
+	}
+
+	public CommandState getCommandState() {
+		return commandState;
+	}
+
+	public void setCommandState(CommandState commandState) {
+		this.commandState = commandState;
 	}
 
 	public User getUser() {
