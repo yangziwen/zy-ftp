@@ -42,8 +42,8 @@ public class FileSystemView {
 		}
 	}
 
-	public FileView getFile(String filePath) {
-		FileView file = new FileView(user, FilenameUtils.concat(getCurrentDirectory().getVirtualPath(), filePath));
+	public FileView getFile(String fileName) {
+		FileView file = new FileView(user, FilenameUtils.concat(getCurrentDirectory().getVirtualPath(), fileName));
 		return file.isLegalFile() ? file : null;
 	}
 

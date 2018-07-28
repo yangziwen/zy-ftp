@@ -129,5 +129,27 @@ public class FileView {
     		.collect(Collectors.toList());
     }
 
+    public boolean hasParent(FileView file) {
+    	if (file == null) {
+    		return false;
+    	}
+    	return virtualPath.startsWith(file.getVirtualPath());
+    }
+
+    public boolean mkdir() {
+    	return file.mkdir();
+    }
+
+    public boolean delete() {
+    	return file.delete();
+    }
+
+    @Override
+    public boolean equals(Object other) {
+    	if (!FileView.class.isInstance(other)) {
+    		return false;
+    	}
+    	return StringUtils.equals(realPath, FileView.class.cast(other).realPath);
+    }
 
 }
