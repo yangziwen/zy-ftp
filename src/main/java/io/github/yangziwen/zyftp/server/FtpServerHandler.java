@@ -2,6 +2,7 @@ package io.github.yangziwen.zyftp.server;
 
 import io.github.yangziwen.zyftp.command.Command;
 import io.github.yangziwen.zyftp.command.CommandFactory;
+import io.github.yangziwen.zyftp.common.FtpReply;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -27,7 +28,7 @@ public class FtpServerHandler extends SimpleChannelInboundHandler<FtpRequest> {
 				sendResponse(promise.get(), ctx);
 			});
 		} else {
-			response = Command.createResponse(FtpResponse.REPLY_502_COMMAND_NOT_IMPLEMENTED, "not.implemented", request, session);
+			response = Command.createResponse(FtpReply.REPLY_502, "not.implemented", request, session);
 			sendResponse(response, ctx);
 		}
 	}
@@ -35,7 +36,7 @@ public class FtpServerHandler extends SimpleChannelInboundHandler<FtpRequest> {
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
     	FtpSession session = FtpSession.getOrCreateSession(ctx, serverContext);
-    	FtpResponse response = Command.createResponse(FtpResponse.REPLY_220_SERVICE_READY, session);
+    	FtpResponse response = Command.createResponse(FtpReply.REPLY_220, session);
     	sendResponse(response, ctx);
     }
 

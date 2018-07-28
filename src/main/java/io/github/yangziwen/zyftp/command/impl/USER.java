@@ -3,6 +3,7 @@ package io.github.yangziwen.zyftp.command.impl;
 import org.apache.commons.lang3.StringUtils;
 
 import io.github.yangziwen.zyftp.command.Command;
+import io.github.yangziwen.zyftp.common.FtpReply;
 import io.github.yangziwen.zyftp.server.FtpRequest;
 import io.github.yangziwen.zyftp.server.FtpResponse;
 import io.github.yangziwen.zyftp.server.FtpSession;
@@ -15,23 +16,23 @@ public class USER implements Command {
 
 		String username = request.getArgument();
 		if (StringUtils.isBlank(username)) {
-			return createFailedResponse(FtpResponse.REPLY_501_SYNTAX_ERROR_IN_PARAMETERS_OR_ARGUMENTS, "USER", request, session);
+			return createFailedResponse(FtpReply.REPLY_501, "USER", request, session);
 		}
 
 		if (session.isLoggedIn()) {
 			User user = session.getUser();
 			if (user == null || !username.equals(user.getUsername())) {
-				return createFailedResponse(FtpResponse.REPLY_530_INVALID_USER, "USER.invalid", request, session);
+				return createFailedResponse(FtpReply.REPLY_530, "USER.invalid", request, session);
 			}
 			if (username.equals(user.getUsername())) {
-				return Command.createResponse(FtpResponse.REPLY_230_USER_LOGGED_IN, "USER", request, session);
+				return Command.createResponse(FtpReply.REPLY_230, "USER", request, session);
 			}
 		}
 
 		boolean isAnonymous = FtpSession.isAnonymous(username);
 
 		if (isAnonymous && !session.getConnectionConfig().isAnonymousEnabled()) {
-			return createFailedResponse(FtpResponse.REPLY_530_INVALID_USER, "USER.anonymous", request, session);
+			return createFailedResponse(FtpReply.REPLY_530, "USER.anonymous", request, session);
 		}
 
 		boolean tooManyLoggedInUsers = FtpSession.TOTAL_LOGIN_USER_COUNTER.get() >= session.getConnectionConfig().getMaxLogins();
@@ -41,7 +42,7 @@ public class USER implements Command {
 		}
 
 		if (tooManyLoggedInUsers) {
-			return createFailedResponse(FtpResponse.REPLY_421_SERVICE_NOT_AVAILABLE_CLOSING_CONTROL_CONNECTION, "USER.anonymous", request, session);
+			return createFailedResponse(FtpReply.REPLY_421, "USER.anonymous", request, session);
 		}
 
 		// TODO user login limit check
@@ -50,11 +51,11 @@ public class USER implements Command {
 
 		String subId = isAnonymous ? "USER.anonymous" : "USER";
 
-		return Command.createResponse(FtpResponse.REPLY_331_USER_NAME_OKAY_NEED_PASSWORD, subId, request, session);
+		return Command.createResponse(FtpReply.REPLY_331, subId, request, session);
 	}
 
-	private FtpResponse createFailedResponse(int code, String subId, FtpRequest request, FtpSession session) {
-		return Command.createResponse(code, subId, request, session).flushedPromise(session.getChannel().newPromise().addListener(future -> {
+	private FtpResponse createFailedResponse(FtpReply reply, String subId, FtpRequest request, FtpSession session) {
+		return Command.createResponse(reply, subId, request, session).flushedPromise(session.getChannel().newPromise().addListener(future -> {
 			session.getChannel().close();
 		}));
 	}

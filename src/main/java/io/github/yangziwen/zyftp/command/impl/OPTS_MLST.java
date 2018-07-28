@@ -7,6 +7,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import io.github.yangziwen.zyftp.command.Command;
+import io.github.yangziwen.zyftp.common.FtpReply;
 import io.github.yangziwen.zyftp.server.FtpRequest;
 import io.github.yangziwen.zyftp.server.FtpResponse;
 import io.github.yangziwen.zyftp.server.FtpSession;
@@ -27,12 +28,12 @@ public class OPTS_MLST implements Command {
 		String[] validatedTypes = validateSelectedTypes(types);
 
 		if (ArrayUtils.isEmpty(validatedTypes)) {
-			return Command.createResponse(FtpResponse.REPLY_501_SYNTAX_ERROR_IN_PARAMETERS_OR_ARGUMENTS, "OPTS.MLST", request, session, listTypes);
+			return Command.createResponse(FtpReply.REPLY_501, "OPTS.MLST", request, session, listTypes);
 		}
 
 		session.setMlstOptionTypes(validatedTypes);
 
-		return Command.createResponse(FtpResponse.REPLY_200_COMMAND_OKAY, "OPTS.MLST", request, session, StringUtils.join(validatedTypes, ";"));
+		return Command.createResponse(FtpReply.REPLY_200, "OPTS.MLST", request, session, StringUtils.join(validatedTypes, ";"));
 	}
 
 	private String[] validateSelectedTypes(String[] types) {

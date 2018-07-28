@@ -4,6 +4,7 @@ import java.net.InetSocketAddress;
 
 import io.github.yangziwen.zyftp.command.Command;
 import io.github.yangziwen.zyftp.common.DataConnectionType;
+import io.github.yangziwen.zyftp.common.FtpReply;
 import io.github.yangziwen.zyftp.server.FtpPassiveDataServer;
 import io.github.yangziwen.zyftp.server.FtpRequest;
 import io.github.yangziwen.zyftp.server.FtpResponse;
@@ -27,7 +28,7 @@ public class PASV implements Command {
 			passiveDataServer.start(port).addListener(f2 -> {
 				InetSocketAddress address = (InetSocketAddress) passiveDataServer.getServerChannel().localAddress();
 				String addrStr = encode(session, address);
-				FtpResponse response = Command.createResponse(FtpResponse.REPLY_227_ENTERING_PASSIVE_MODE, "PASV", request, session, addrStr);
+				FtpResponse response = Command.createResponse(FtpReply.REPLY_227, "PASV", request, session, addrStr);
 				session.setDataConnectionType(DataConnectionType.PASV);
 				promise.setSuccess(response);
 			});

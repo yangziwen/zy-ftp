@@ -7,6 +7,7 @@ import org.apache.commons.lang3.StringUtils;
 import com.google.common.collect.ImmutableMap;
 
 import io.github.yangziwen.zyftp.command.Command;
+import io.github.yangziwen.zyftp.common.FtpReply;
 import io.github.yangziwen.zyftp.server.FtpRequest;
 import io.github.yangziwen.zyftp.server.FtpResponse;
 import io.github.yangziwen.zyftp.server.FtpSession;
@@ -21,12 +22,12 @@ public class OPTS implements Command {
 	@Override
 	public FtpResponse execute(FtpSession session, FtpRequest request) {
 		if (StringUtils.isBlank(request.getArgument())) {
-			return Command.createResponse(FtpResponse.REPLY_501_SYNTAX_ERROR_IN_PARAMETERS_OR_ARGUMENTS, "OPTS", session);
+			return Command.createResponse(FtpReply.REPLY_501, "OPTS", session);
 		}
 		String subCmd = request.getArgument().split("\\s", 2)[0];
 		Command command = SUB_COMMANDS.get("OPTS_" + subCmd);
 		if (command == null) {
-			return Command.createResponse(FtpResponse.REPLY_502_COMMAND_NOT_IMPLEMENTED, "OPTS.not.implemented", session);
+			return Command.createResponse(FtpReply.REPLY_502, "OPTS.not.implemented", session);
 		}
 		return command.execute(session, request);
 	}

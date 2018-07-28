@@ -1,6 +1,7 @@
 package io.github.yangziwen.zyftp.command.impl;
 
 import io.github.yangziwen.zyftp.command.Command;
+import io.github.yangziwen.zyftp.common.FtpReply;
 import io.github.yangziwen.zyftp.filesystem.FileView;
 import io.github.yangziwen.zyftp.server.FtpRequest;
 import io.github.yangziwen.zyftp.server.FtpResponse;
@@ -15,9 +16,9 @@ public class CDUP implements Command {
 
 		if (success) {
 			FileView currentDirectory = session.getFileSystemView().getCurrentDirectory();
-			return Command.createResponse(FtpResponse.REPLY_250_REQUESTED_FILE_ACTION_OKAY, "CDUP", request, session, currentDirectory.getVirtualPath());
+			return Command.createResponse(FtpReply.REPLY_250, "CDUP", request, session, currentDirectory.getVirtualPath());
 		} else {
-			return Command.createResponse(FtpResponse.REPLY_550_REQUESTED_ACTION_NOT_TAKEN, "CDUP", session);
+			return Command.createResponse(FtpReply.REPLY_550, "CDUP", session);
 		}
 	}
 

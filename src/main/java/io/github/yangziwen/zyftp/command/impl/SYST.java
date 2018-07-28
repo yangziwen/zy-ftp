@@ -3,6 +3,7 @@ package io.github.yangziwen.zyftp.command.impl;
 import org.apache.commons.lang3.StringUtils;
 
 import io.github.yangziwen.zyftp.command.Command;
+import io.github.yangziwen.zyftp.common.FtpReply;
 import io.github.yangziwen.zyftp.server.FtpRequest;
 import io.github.yangziwen.zyftp.server.FtpResponse;
 import io.github.yangziwen.zyftp.server.FtpSession;
@@ -21,9 +22,9 @@ public class SYST implements Command {
 			systemName = systemName.replaceAll(" ", "-").toUpperCase();
 		}
 
-		FtpResponse response = Command.createResponse(FtpResponse.REPLY_215_NAME_SYSTEM_TYPE, "SYST", request, session);
+		FtpResponse response = Command.createResponse(FtpReply.REPLY_215, "SYST", request, session);
 		response.setBasicMsg(systemName);
-		return ResponseMessageVariableReplacer.replaceVariables(FtpResponse.REPLY_215_NAME_SYSTEM_TYPE, "SYST", request, response, session);
+		return ResponseMessageVariableReplacer.replaceVariables(FtpReply.REPLY_215.getCode(), "SYST", request, response, session);
 	}
 
 }

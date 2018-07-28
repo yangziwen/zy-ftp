@@ -3,6 +3,7 @@ package io.github.yangziwen.zyftp.command.impl;
 import org.apache.commons.lang3.StringUtils;
 
 import io.github.yangziwen.zyftp.command.Command;
+import io.github.yangziwen.zyftp.common.FtpReply;
 import io.github.yangziwen.zyftp.server.FtpRequest;
 import io.github.yangziwen.zyftp.server.FtpResponse;
 import io.github.yangziwen.zyftp.server.FtpSession;
@@ -16,11 +17,11 @@ public class PASS implements Command {
 		User user = session.getUser();
 
 		if (user == null || StringUtils.isBlank(user.getUsername())) {
-			return createFailedResponse(FtpResponse.REPLY_503_BAD_SEQUENCE_OF_COMMANDS, "PASS", request, session);
+			return createFailedResponse(FtpReply.REPLY_503, "PASS", request, session);
 		}
 
 		if (session.isLoggedIn()) {
-			return Command.createResponse(FtpResponse.REPLY_202_COMMAND_NOT_IMPLEMENTED, "PASS", request, session);
+			return Command.createResponse(FtpReply.REPLY_202, "PASS", request, session);
 		}
 
 		boolean isAnonymous = FtpSession.isAnonymous(user);
@@ -32,7 +33,7 @@ public class PASS implements Command {
 		}
 
 		if (tooManyLoggedInUsers) {
-			return createFailedResponse(FtpResponse.REPLY_421_SERVICE_NOT_AVAILABLE_CLOSING_CONTROL_CONNECTION, "USER.anonymous", request, session);
+			return createFailedResponse(FtpReply.REPLY_421, "USER.anonymous", request, session);
 		}
 
 		String username = user.getUsername();
@@ -47,11 +48,11 @@ public class PASS implements Command {
 
 		// TODO initiate file system view
 
-		return Command.createResponse(FtpResponse.REPLY_230_USER_LOGGED_IN, "PASS", request, session);
+		return Command.createResponse(FtpReply.REPLY_230, "PASS", request, session);
 	}
 
-	private FtpResponse createFailedResponse(int code, String subId, FtpRequest request, FtpSession session) {
-		return Command.createResponse(code, subId, request, session).flushedPromise(session.getChannel().newPromise().addListener(future -> {
+	private FtpResponse createFailedResponse(FtpReply reply, String subId, FtpRequest request, FtpSession session) {
+		return Command.createResponse(reply, subId, request, session).flushedPromise(session.getChannel().newPromise().addListener(future -> {
 			session.logout();
 		}));
 	}

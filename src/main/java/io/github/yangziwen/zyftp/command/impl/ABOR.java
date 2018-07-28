@@ -1,6 +1,7 @@
 package io.github.yangziwen.zyftp.command.impl;
 
 import io.github.yangziwen.zyftp.command.Command;
+import io.github.yangziwen.zyftp.common.FtpReply;
 import io.github.yangziwen.zyftp.server.FtpRequest;
 import io.github.yangziwen.zyftp.server.FtpResponse;
 import io.github.yangziwen.zyftp.server.FtpSession;
@@ -17,7 +18,7 @@ public class ABOR implements Command {
 	public Promise<FtpResponse> executeAsync(FtpSession session, FtpRequest request) {
 		Promise<FtpResponse> promise = session.getContext().channel().eventLoop().newPromise();
 		session.shutdownDataConnection().addListener(f -> {
-			FtpResponse response = Command.createResponse(FtpResponse.REPLY_226_CLOSING_DATA_CONNECTION, "ABOR", session);
+			FtpResponse response = Command.createResponse(FtpReply.REPLY_226, "ABOR", session);
 			promise.setSuccess(response);
 		});
 		return promise;

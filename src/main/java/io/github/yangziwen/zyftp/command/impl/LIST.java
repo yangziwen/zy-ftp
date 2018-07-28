@@ -6,6 +6,7 @@ import io.github.yangziwen.zyftp.command.Command;
 import io.github.yangziwen.zyftp.command.impl.listing.DirectoryLister;
 import io.github.yangziwen.zyftp.command.impl.listing.LISTFileFormatter;
 import io.github.yangziwen.zyftp.command.impl.listing.ListArgument;
+import io.github.yangziwen.zyftp.common.FtpReply;
 import io.github.yangziwen.zyftp.server.FtpDataWriter;
 import io.github.yangziwen.zyftp.server.FtpRequest;
 import io.github.yangziwen.zyftp.server.FtpResponse;
@@ -27,9 +28,9 @@ public class LIST implements Command {
 	@Override
 	public FtpResponse execute(FtpSession session, FtpRequest request) {
 		if (!session.isDataConnectionReady()) {
-			return Command.createResponse(FtpResponse.REPLY_503_BAD_SEQUENCE_OF_COMMANDS, null, request, session, "PORT or PASV must be issued first");
+			return Command.createResponse(FtpReply.REPLY_503, null, request, session, "PORT or PASV must be issued first");
 		}
-		FtpResponse response = Command.createResponse(FtpResponse.REPLY_150_FILE_STATUS_OKAY, "MLSD", session);
+		FtpResponse response = Command.createResponse(FtpReply.REPLY_150, "MLSD", session);
 		response.setFlushedPromise(session.getContext().newPromise().addListener(f -> {
 			doSendFileList(session, request);
 		}));
@@ -48,7 +49,7 @@ public class LIST implements Command {
 					return channel.writeAndFlush(buffer);
 				}
 			}).addListener(f -> {
-				FtpServerHandler.sendResponse(Command.createResponse(FtpResponse.REPLY_226_CLOSING_DATA_CONNECTION, "MLSD", session), session.getContext())
+				FtpServerHandler.sendResponse(Command.createResponse(FtpReply.REPLY_226, "MLSD", session), session.getContext())
 					.addListener(f2 -> {
 						session.shutdownDataConnection();
 					});
@@ -56,7 +57,7 @@ public class LIST implements Command {
 		} catch (IOException e) {
 			log.error("failed to get the file list in directory of {}",
 					session.getFileSystemView().getCurrentDirectory().getVirtualPath(), e);
-			FtpServerHandler.sendResponse(Command.createResponse(FtpResponse.REPLY_425_CANT_OPEN_DATA_CONNECTION, "MLSD", session), session.getContext());
+			FtpServerHandler.sendResponse(Command.createResponse(FtpReply.REPLY_425, "MLSD", session), session.getContext());
 		}
 	}
 
