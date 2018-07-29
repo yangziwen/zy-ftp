@@ -153,7 +153,7 @@ public class FtpSession {
 			return passiveDataServer.writeAndFlushData(writer);
 		} else {
 			// TODO PORT
-			return getWorkerEventLoopGroup().next().<Boolean>newPromise().setSuccess(false);
+			return getChannel().eventLoop().<Boolean>newPromise().setSuccess(false);
 		}
 	}
 
@@ -187,7 +187,8 @@ public class FtpSession {
 			return passiveDataServer.shutdown();
 		}
 		// TODO PORT
-		return getWorkerEventLoopGroup().next().<Void>newPromise().setFailure(null);
+		return getChannel().eventLoop().<Void>newPromise()
+				.setFailure(new IllegalStateException("passive data server is not available"));
 	}
 
 	public Promise<Void> shutdownDataConnection() {

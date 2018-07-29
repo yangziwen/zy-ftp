@@ -2,6 +2,7 @@ package io.github.yangziwen.zyftp.server;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentHashMap.KeySetView;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -32,12 +33,15 @@ public class FtpPassiveDataServer {
 
 	private KeySetView<Channel, Boolean> clientChannels = ConcurrentHashMap.newKeySet();
 
+	private Promise<Void> connectedPromise;
+
 	private AtomicBoolean running = new AtomicBoolean(false);
 
 	public FtpPassiveDataServer(FtpSession session) {
 		this.session = session;
 		this.serverBootstrap = new ServerBootstrap();
 		session.setPassiveDataServer(this);
+		connectedPromise = session.getContext().newPromise();
 	}
 
 	public Channel getServerChannel() {
@@ -48,9 +52,8 @@ public class FtpPassiveDataServer {
 	}
 
 	public ChannelFuture start(Integer port) throws Exception {
-		EventLoopGroup bossEventLoopGroup = session.getBossEventLoopGroup();
-		EventLoopGroup workerEventLoopGroup = session.getWorkerEventLoopGroup();
-		this.serverChannelFuture = this.serverBootstrap.group(bossEventLoopGroup, workerEventLoopGroup)
+		EventLoopGroup eventLoopGroup = session.getChannel().eventLoop();
+		this.serverChannelFuture = this.serverBootstrap.group(eventLoopGroup, eventLoopGroup)
 			.channel(NioServerSocketChannel.class)
 			.option(ChannelOption.SO_BACKLOG, 1024)
 	        .option(ChannelOption.SO_REUSEADDR, true)
@@ -59,32 +62,43 @@ public class FtpPassiveDataServer {
 	        .childHandler(new ChannelInitializer<Channel>() {
 				@Override
 				protected void initChannel(Channel channel) throws Exception {
+					if (clientChannels.add(channel)) {
+						connectedPromise.setSuccess(null);
+					}
 					channel.pipeline()
 						.addLast(new IdleStateHandler(0, 0, session.getServerConfig().getDataConnectionMaxIdleSeconds()))
 						.addLast(new PassiveDataServerHandler());
-					clientChannels.add(channel);
 				}
 			}).bind(port).addListener(f -> {
 				running.compareAndSet(false, true);
+				session.getChannel().eventLoop().schedule(() -> {
+					shutdown();
+				}, session.getServerConfig().getDataConnectionMaxIdleSeconds(), TimeUnit.SECONDS);
 			});
 		;
 		return this.serverChannelFuture;
 	}
 
 	public Promise<Boolean> writeAndFlushData(FtpDataWriter writer) {
-		Promise<Boolean> promise = session.getWorkerEventLoopGroup().next().newPromise();
-		if (writer == null || CollectionUtils.isEmpty(clientChannels)) {
-			promise.setSuccess(false);
-		} else {
-			writer.writeAndFlushData(clientChannels.iterator().next()).addListener(f -> {
-				promise.setSuccess(true);
-			});
-		}
+		Promise<Boolean> promise = session.getChannel().eventLoop().newPromise();
+		connectedPromise.addListener(f1 -> {
+			if (!f1.isSuccess()) {
+				promise.setSuccess(false);
+			}
+			else if (writer == null || CollectionUtils.isEmpty(clientChannels)) {
+				promise.setSuccess(false);
+			}
+			else {
+				writer.writeAndFlushData(clientChannels.iterator().next()).addListener(f -> {
+					promise.setSuccess(true);
+				});
+			}
+		});
 		return promise;
 	}
 
 	public Promise<Void> shutdown() {
-		Promise<Void> promise = session.getBossEventLoopGroup().next().newPromise();
+		Promise<Void> promise = session.getContext().newPromise();
 		if (!running.compareAndSet(true, false)) {
 			promise.setFailure(new RuntimeException("data server is not running"));
 		} else {
@@ -103,7 +117,7 @@ public class FtpPassiveDataServer {
 	}
 
 	private Promise<Void> closeClientChannels(KeySetView<Channel, Boolean> clientChannels) {
-		Promise<Void> promise = session.getWorkerEventLoopGroup().next().newPromise();
+		Promise<Void> promise = session.getContext().newPromise();
 		AtomicInteger counter = new AtomicInteger(clientChannels.size());
 		clientChannels.forEach(channel -> {
 			channel.close().addListener(future -> {

@@ -12,7 +12,7 @@ public interface Command {
 	FtpResponse execute(FtpSession session, FtpRequest request);
 
 	default Promise<FtpResponse> executeAsync(FtpSession session, FtpRequest request) {
-		Promise<FtpResponse> promise = session.getContext().channel().eventLoop().newPromise();
+		Promise<FtpResponse> promise = session.getChannel().eventLoop().newPromise();
 		promise.setSuccess(execute(session, request));
 		return promise;
 	}
