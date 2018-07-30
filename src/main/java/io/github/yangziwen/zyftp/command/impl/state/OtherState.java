@@ -20,6 +20,9 @@ public class OtherState extends AbstractCommandState<OtherState> {
 		if ("REST".equals(request.getCommand()) && request.hasArgument()) {
 			return new RetrState(requestMap).putRequest("REST", request);
 		}
+		if ("STOR".equals(request.getCommand())) {
+			return new StorState().putRequest("STOR", request);
+		}
 		return this;
 	}
 

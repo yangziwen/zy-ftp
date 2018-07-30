@@ -15,6 +15,9 @@ public class RestState extends AbstractCommandState<RestState> {
 		if ("RETR".equals(request.getCommand())) {
 			return new RetrState(requestMap).putRequest("RETR", request);
 		}
+		if ("STOR".equals(request.getCommand())) {
+			return new StorState(requestMap).putRequest("STOR", request);
+		}
 		return OtherState.INSTANCE.transferTo(request);
 	}
 

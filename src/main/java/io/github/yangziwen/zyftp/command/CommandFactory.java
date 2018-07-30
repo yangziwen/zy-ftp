@@ -24,6 +24,7 @@ import io.github.yangziwen.zyftp.command.impl.RETR;
 import io.github.yangziwen.zyftp.command.impl.RMD;
 import io.github.yangziwen.zyftp.command.impl.RNFR;
 import io.github.yangziwen.zyftp.command.impl.RNTO;
+import io.github.yangziwen.zyftp.command.impl.STOR;
 import io.github.yangziwen.zyftp.command.impl.SYST;
 import io.github.yangziwen.zyftp.command.impl.TYPE;
 import io.github.yangziwen.zyftp.command.impl.USER;
@@ -54,6 +55,7 @@ public interface CommandFactory {
 			.put("RNTO", new RNTO())
 			.put("ABOR", new ABOR())
 			.put("RETR", new RETR())
+			.put("STOR", new STOR())
 			.build();
 
 	static Command getCommand(String name) {

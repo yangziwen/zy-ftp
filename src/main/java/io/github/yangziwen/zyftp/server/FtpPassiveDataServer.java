@@ -1,25 +1,36 @@
 package io.github.yangziwen.zyftp.server;
 
+import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.nio.channels.FileChannel;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentHashMap.KeySetView;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 
+import io.github.yangziwen.zyftp.command.impl.state.CommandState;
+import io.github.yangziwen.zyftp.command.impl.state.StorState;
+import io.github.yangziwen.zyftp.filesystem.FileView;
 import io.netty.bootstrap.ServerBootstrap;
+import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.Channel;
+import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
+import io.netty.channel.ChannelPromise;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.util.concurrent.Promise;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -36,6 +47,8 @@ public class FtpPassiveDataServer {
 	private Promise<Void> connectedPromise;
 
 	private AtomicBoolean running = new AtomicBoolean(false);
+
+	private AtomicReference<UploadFileInfo> uploadFileInfoRef = new AtomicReference<>();
 
 	public FtpPassiveDataServer(FtpSession session) {
 		this.session = session;
@@ -102,6 +115,9 @@ public class FtpPassiveDataServer {
 		if (!running.compareAndSet(true, false)) {
 			promise.setFailure(new RuntimeException("data server is not running"));
 		} else {
+			if (uploadFileInfoRef.get() != null && uploadFileInfoRef.get().isValid()) {
+				uploadFileInfoRef.get().close();
+			}
 			closeClientChannels(clientChannels).addListener(f1 -> {
 				serverChannelFuture.channel().close().addListener(f2 -> {
 					log.info("passive data server of session{} is shut down", session);
@@ -129,7 +145,98 @@ public class FtpPassiveDataServer {
 		return promise;
 	}
 
-	class PassiveDataServerHandler extends ChannelInboundHandlerAdapter {
+	public ChannelFuture getCloseFuture() {
+		return serverChannelFuture.channel().closeFuture();
+	}
+
+	@Data
+	class UploadFileInfo {
+
+		private long offset;
+
+		private RandomAccessFile file;
+
+		private long receivedTotalBytes;
+
+		public UploadFileInfo() {
+			this.offset = -1;
+			this.file = null;
+			CommandState state = session.getCommandState();
+			if (!StorState.class.isInstance(state)) {
+				return;
+			}
+			FtpRequest restRequest = state.getRequest("REST");
+			this.offset = restRequest == null ? 0 : NumberUtils.toLong(restRequest.getArgument());
+			this.file = getUploadFile(session, state);
+		}
+
+		public boolean isValid() {
+			return offset >= 0 && file != null;
+		}
+
+		public long getAndAddOffset(long delta) {
+			long offset = this.offset;
+			this.offset += delta;
+			return offset;
+		}
+
+		private RandomAccessFile getUploadFile(FtpSession session, CommandState commandState) {
+	    	String fileName = commandState.getRequest("STOR").getArgument();
+	    	FileView fileView = session.getFileSystemView().getFile(fileName);
+	    	if (fileView == null) {
+	    		return null;
+	    	}
+	    	try {
+				return new RandomAccessFile(fileView.getRealFile(), "rw");
+			} catch (Exception e) {
+				return null;
+			}
+	    }
+
+		public FileChannel getFileChannel() {
+			return file != null ? file.getChannel() : null;
+		}
+
+		public void close() {
+			try {
+				file.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+
+	}
+
+	class PassiveDataServerHandler extends ChannelDuplexHandler {
+
+	    @Override
+	    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+	    	if (uploadFileInfoRef.get() == null) {
+	    		uploadFileInfoRef.compareAndSet(null, new UploadFileInfo());
+	    	}
+	    	UploadFileInfo uploadFileInfo = uploadFileInfoRef.get();
+	    	if (!uploadFileInfo.isValid()) {
+	    		return;
+	    	}
+	        ByteBuf buffer = (ByteBuf) msg;
+	        int length = 0;
+	        while ((length = buffer.readableBytes()) > 0) {
+	        	buffer.readBytes(uploadFileInfo.getFileChannel(), uploadFileInfo.getAndAddOffset(length), length);
+	        }
+	    }
+
+	    @Override
+	    public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
+	    	UploadFileInfo uploadFileInfo = uploadFileInfoRef.get();
+	    	if (uploadFileInfo == null) {
+	    		return;
+	    	}
+	    	if (uploadFileInfo.getOffset() > uploadFileInfo.getReceivedTotalBytes()) {
+	    		uploadFileInfo.setReceivedTotalBytes(uploadFileInfo.getOffset());
+	    	} else {
+		    	shutdown();
+	    	}
+	    }
 
 		@Override
 		public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
@@ -145,6 +252,13 @@ public class FtpPassiveDataServer {
 					});
 				});
 			}
+	    }
+
+		@Override
+	    public void disconnect(ChannelHandlerContext ctx, ChannelPromise promise) throws Exception {
+	        promise.addListener(f -> {
+		    	shutdown();
+	        });
 	    }
 
 	}

@@ -52,6 +52,9 @@ public class FtpServerHandler extends SimpleChannelInboundHandler<FtpRequest> {
 	public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
     	if (FtpSession.isAllIdleStateEvent(evt)) {
     		FtpSession session = FtpSession.getOrCreateSession(ctx, serverContext);
+    		if (session.isDataConnectionReady()) {
+    			return;
+    		}
     		if (session.isLoggedIn()) {
     			session.logout();
     		}

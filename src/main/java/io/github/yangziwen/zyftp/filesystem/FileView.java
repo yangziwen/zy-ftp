@@ -92,7 +92,8 @@ public class FileView {
 	}
 
 	public boolean isWritable() {
-		return file.canWrite();
+		// TODO
+		return true;
 	}
 
     public int getLinkCount() {

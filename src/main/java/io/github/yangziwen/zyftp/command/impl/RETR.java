@@ -22,7 +22,7 @@ public class RETR implements Command {
 		}
 		FileView file = session.getFileSystemView().getFile(request.getArgument());
 		if (file == null || !file.doesExist()) {
-			return Command.createResponse(FtpReply.REPLY_550, "RETR.missing", request, session, file.getVirtualPath());
+			return Command.createResponse(FtpReply.REPLY_550, "RETR.missing", request, session, request.getArgument());
 		}
 		if (!file.isFile()) {
 			return Command.createResponse(FtpReply.REPLY_550, "RETR.invalid", request, session, file.getVirtualPath());

@@ -1,12 +1,17 @@
 package io.github.yangziwen.zyftp.command.impl.state;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import io.github.yangziwen.zyftp.server.FtpRequest;
 
-public class RetrState extends AbstractCommandState<RetrState> {
+public class StorState extends AbstractCommandState<StorState> {
 
-	public RetrState(Map<String, FtpRequest> requestMap) {
+	public StorState() {
+		this(new HashMap<>());
+	}
+
+	public StorState(Map<String, FtpRequest> requestMap) {
 		super(requestMap);
 	}
 
