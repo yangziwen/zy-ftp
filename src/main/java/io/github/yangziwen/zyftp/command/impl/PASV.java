@@ -20,8 +20,9 @@ public class PASV implements Command {
 
 	@Override
 	public Promise<FtpResponse> executeAsync(FtpSession session, FtpRequest request) {
+		log.info("session[{}] send request [{}]", session, request);
 		Promise<Integer> portPromise = session.getServerContext().getPassivePorts().borrowPort();
-		Promise<FtpResponse> promise = session.getChannel().eventLoop().newPromise();
+		Promise<FtpResponse> promise = session.newPromise();
 		portPromise.addListener(f1 -> {
 			int port = portPromise.get();
 			FtpPassiveDataServer passiveDataServer = new FtpPassiveDataServer(session);

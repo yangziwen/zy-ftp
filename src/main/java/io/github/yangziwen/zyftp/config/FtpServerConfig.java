@@ -8,13 +8,15 @@ import lombok.Data;
 @Data
 public class FtpServerConfig {
 
+	// TODO 参数需要可配置
+
 	private SocketAddress localAddress;
 
 	private int maxIdleSeconds = 120;
 
 	private int dataConnectionMaxIdleSeconds = 30;
 
-	private String passiveAddress = "127.0.0.1";	// TODO 需要可配置
+	private String passiveAddress = "127.0.0.1";
 
 	private String passivePortsString = "40000-50000";
 

@@ -17,6 +17,7 @@ import io.github.yangziwen.zyftp.filesystem.FileSystemView;
 import io.github.yangziwen.zyftp.user.User;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelPromise;
 import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.util.AttributeKey;
@@ -79,6 +80,14 @@ public class FtpSession {
 
 	public boolean isLoggedIn() {
 		return loggedIn;
+	}
+
+	public <V> Promise<V> newPromise() {
+		return this.getChannel().eventLoop().newPromise();
+	}
+
+	public ChannelPromise newChannelPromise() {
+		return this.getContext().newPromise();
 	}
 
 	public void setLoggedIn(boolean loggedIn) {
@@ -175,7 +184,7 @@ public class FtpSession {
 		if (dataConnectionType == DataConnectionType.PORT) {
 			// TODO PORT
 		}
-		Promise<FtpDataConnection> promise = getChannel().eventLoop().<FtpDataConnection>newPromise();
+		Promise<FtpDataConnection> promise = this.<FtpDataConnection>newPromise();
 		Exception error = new IllegalStateException(String.format("the data connection of session[%s] is not available", this));
 		return promise.setFailure(error);
 	}
@@ -206,9 +215,9 @@ public class FtpSession {
 	}
 
 	public Promise<Void> shutdownDataConnections() {
-		Promise<Void> finishedPromise = getChannel().eventLoop().newPromise();
+		Promise<Void> finishedPromise = newPromise();
 		List<Promise<Void>> promises = passiveDataServers.stream()
-				.map(FtpPassiveDataServer::shutdown).collect(Collectors.toList());
+				.map(FtpPassiveDataServer::stop).collect(Collectors.toList());
 		// TODO for PORT mode
 		AtomicInteger counter = new AtomicInteger(promises.size());
 		promises.forEach(promise -> {
@@ -250,6 +259,12 @@ public class FtpSession {
 		}
 		IdleStateEvent event = (IdleStateEvent) evt;
 		return event.state() == IdleState.ALL_IDLE;
+	}
+
+	@Override
+	public String toString() {
+		String[] array = super.toString().split("\\.");
+		return array[array.length - 1];
 	}
 
 }

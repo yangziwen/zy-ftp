@@ -28,7 +28,7 @@ public class STOR implements Command {
 
 		long offset = parseOffset(session.getCommandState().getRequest("REST"));
 		FtpResponse response = Command.createResponse(FtpReply.REPLY_150, "STOR", session);
-		response.setFlushedPromise(session.getContext().newPromise().addListener(f -> {
+		response.setFlushedPromise(session.newChannelPromise().addListener(f -> {
 			doReceiveFileContent(session, request, file, offset);
 		}));
 		return response;

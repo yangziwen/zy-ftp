@@ -12,6 +12,6 @@ public interface FtpDataConnection {
 
 	Promise<FtpDataConnection> writeAndFlushData(FtpDataWriter writer);
 
-	Promise<Void> shutdown();
+	Promise<Void> stop();
 
 }

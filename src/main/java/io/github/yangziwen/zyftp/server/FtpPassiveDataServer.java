@@ -49,6 +49,7 @@ public class FtpPassiveDataServer implements FtpDataConnection {
 
 	private KeySetView<Channel, Boolean> clientChannels = ConcurrentHashMap.newKeySet();
 
+	// if any client connect to the passive data server, this promise will be set as success
 	private Promise<Void> connectedPromise;
 
 	private AtomicBoolean running = new AtomicBoolean(false);
@@ -59,7 +60,7 @@ public class FtpPassiveDataServer implements FtpDataConnection {
 		this.session = session;
 		this.serverBootstrap = new ServerBootstrap();
 		session.addPassiveDataServer(this);
-		connectedPromise = session.getContext().newPromise();
+		connectedPromise = session.newPromise();
 	}
 
 	public Channel getServerChannel() {
@@ -89,9 +90,14 @@ public class FtpPassiveDataServer implements FtpDataConnection {
 				}
 			}).bind(port).addListener(f -> {
 				running.compareAndSet(false, true);
+				// the passive server will be stopped if any channel disconnect from the server
+				// so we only need to consider the case that no client connect to the server
 				session.getChannel().eventLoop().schedule(() -> {
-					shutdown();
+					if (CollectionUtils.isEmpty(clientChannels)) {
+						stop();
+					}
 				}, session.getServerConfig().getDataConnectionMaxIdleSeconds(), TimeUnit.SECONDS);
+				log.info("passive data server[{}] of session[{}] is started and listening port[{}]", this, session, port);
 			});
 		;
 		return this.serverChannelFuture;
@@ -99,7 +105,7 @@ public class FtpPassiveDataServer implements FtpDataConnection {
 
 	@Override
 	public Promise<FtpDataConnection> writeAndFlushData(FtpDataWriter writer) {
-		Promise<FtpDataConnection> promise = session.getChannel().eventLoop().newPromise();
+		Promise<FtpDataConnection> promise = session.newPromise();
 		if (writer == null) {
 			return promise.setFailure(new NullPointerException("writer cannot be null"));
 		}
@@ -122,22 +128,22 @@ public class FtpPassiveDataServer implements FtpDataConnection {
 		return promise;
 	}
 
-	public Promise<Void> shutdown() {
-		Promise<Void> promise = session.getContext().newPromise();
+	@Override
+	public Promise<Void> stop() {
+		Promise<Void> promise = session.newPromise();
 		if (!running.compareAndSet(true, false)) {
-			promise.setFailure(new RuntimeException("data server is not running"));
-		} else {
-			if (uploadFileInfoRef.get() != null && uploadFileInfoRef.get().isValid()) {
-				uploadFileInfoRef.get().close();
-			}
-			closeClientChannels(clientChannels).addListener(f1 -> {
-				serverChannelFuture.channel().close().addListener(f2 -> {
-					log.info("passive data server of session{} is shut down", session);
-					session.removePassiveDataServer(this);
-					promise.setSuccess(null);
-				});
-			});
+			return promise.setFailure(new RuntimeException("data server is not running"));
 		}
+		if (uploadFileInfoRef.get() != null && uploadFileInfoRef.get().isValid()) {
+			uploadFileInfoRef.get().close();
+		}
+		closeClientChannels(clientChannels).addListener(f1 -> {
+			serverChannelFuture.channel().close().addListener(f2 -> {
+				log.info("passive data server[{}] of session[{}] is stopped", this, session);
+				session.removePassiveDataServer(this);
+				promise.setSuccess(null);
+			});
+		});
 		return promise;
 	}
 
@@ -146,7 +152,7 @@ public class FtpPassiveDataServer implements FtpDataConnection {
 	}
 
 	private Promise<Void> closeClientChannels(KeySetView<Channel, Boolean> clientChannels) {
-		Promise<Void> promise = session.getContext().newPromise();
+		Promise<Void> promise = session.newPromise();
 		AtomicInteger counter = new AtomicInteger(clientChannels.size());
 		clientChannels.forEach(channel -> {
 			channel.close().addListener(future -> {
@@ -160,6 +166,12 @@ public class FtpPassiveDataServer implements FtpDataConnection {
 
 	public ChannelFuture getCloseFuture() {
 		return serverChannelFuture.channel().closeFuture();
+	}
+
+	@Override
+	public String toString() {
+		String[] array = super.toString().split("\\.");
+		return array[array.length - 1];
 	}
 
 	@Data
@@ -247,7 +259,7 @@ public class FtpPassiveDataServer implements FtpDataConnection {
 	    	if (uploadFileInfo.getOffset() > uploadFileInfo.getReceivedTotalBytes()) {
 	    		uploadFileInfo.setReceivedTotalBytes(uploadFileInfo.getOffset());
 	    	} else {
-		    	shutdown();
+		    	stop();
 	    	}
 	    }
 
@@ -260,7 +272,7 @@ public class FtpPassiveDataServer implements FtpDataConnection {
 					return;
 				}
 				future.addListener(f1 -> {
-					shutdown();
+					stop();
 				});
 			}
 	    }
@@ -268,7 +280,7 @@ public class FtpPassiveDataServer implements FtpDataConnection {
 		@Override
 	    public void disconnect(ChannelHandlerContext ctx, ChannelPromise promise) throws Exception {
 	        promise.addListener(f -> {
-		    	shutdown();
+		    	stop();
 	        });
 	    }
 

@@ -55,7 +55,7 @@ public class USER implements Command {
 	}
 
 	private FtpResponse createFailedResponse(FtpReply reply, String subId, FtpRequest request, FtpSession session) {
-		return Command.createResponse(reply, subId, request, session).flushedPromise(session.getChannel().newPromise().addListener(future -> {
+		return Command.createResponse(reply, subId, request, session).flushedPromise(session.newChannelPromise().addListener(future -> {
 			session.getChannel().close();
 		}));
 	}

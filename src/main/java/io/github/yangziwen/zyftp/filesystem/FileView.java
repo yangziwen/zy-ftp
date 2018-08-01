@@ -12,6 +12,12 @@ import org.apache.commons.lang3.StringUtils;
 
 import io.github.yangziwen.zyftp.user.User;
 
+/**
+ * The file view
+ * mapping the virtual path to the real file
+ *
+ * @author yangziwen
+ */
 public class FileView {
 
 	public static final String DEFAULT_HOME_DIRECTORY = "res/";

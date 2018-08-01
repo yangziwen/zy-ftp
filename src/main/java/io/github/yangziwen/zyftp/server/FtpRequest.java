@@ -28,4 +28,10 @@ public class FtpRequest {
 		return StringUtils.isNotBlank(argument);
 	}
 
+	@Override
+	public String toString() {
+		return command + " : "
+				+ ("PASS".equals(command) ? StringUtils.repeat("*", StringUtils.length(argument)) : argument);
+	}
+
 }

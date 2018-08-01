@@ -5,6 +5,11 @@ import org.apache.commons.io.FilenameUtils;
 import io.github.yangziwen.zyftp.user.User;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * The file system view
+ *
+ * @author yangziwen
+ */
 @Slf4j
 public class FileSystemView {
 

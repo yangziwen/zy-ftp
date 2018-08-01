@@ -33,7 +33,7 @@ public class LIST implements Command {
 			return Command.createResponse(FtpReply.REPLY_503, null, request, session, "PORT or PASV must be issued first");
 		}
 		FtpResponse response = Command.createResponse(FtpReply.REPLY_150, "MLSD", session);
-		response.setFlushedPromise(session.getContext().newPromise().addListener(f -> {
+		response.setFlushedPromise(session.newChannelPromise().addListener(f -> {
 			doSendFileList(session, request);
 		}));
 		return response;
@@ -54,7 +54,7 @@ public class LIST implements Command {
 			promise.addListener(f1 -> {
 				FtpServerHandler.sendResponse(Command.createResponse(FtpReply.REPLY_226, "MLSD", session), session.getContext())
 					.addListener(f2 -> {
-						promise.get().shutdown();
+						promise.get().stop();
 					});
 			});
 		} catch (IOException e) {

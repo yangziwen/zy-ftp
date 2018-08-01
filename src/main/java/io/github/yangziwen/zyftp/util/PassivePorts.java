@@ -13,6 +13,12 @@ import io.netty.util.concurrent.DefaultEventExecutor;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.Promise;
 
+/**
+ * The passive ports class
+ * allocate random ports for passive data servers
+ *
+ * @author yangziwen
+ */
 public class PassivePorts {
 
 	private static final int MAX_PORT = 65535;

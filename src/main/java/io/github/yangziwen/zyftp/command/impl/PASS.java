@@ -52,7 +52,7 @@ public class PASS implements Command {
 	}
 
 	private FtpResponse createFailedResponse(FtpReply reply, String subId, FtpRequest request, FtpSession session) {
-		return Command.createResponse(reply, subId, request, session).flushedPromise(session.getContext().newPromise().addListener(future -> {
+		return Command.createResponse(reply, subId, request, session).flushedPromise(session.newChannelPromise().addListener(future -> {
 			session.logout();
 		}));
 	}

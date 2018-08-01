@@ -12,7 +12,7 @@ public class QUIT implements Command {
 	@Override
 	public FtpResponse execute(FtpSession session, FtpRequest request) {
 		FtpResponse response = Command.createResponse(FtpReply.REPLY_221, "QUIT", session);
-		ChannelPromise flushedPromise = session.getContext().newPromise();
+		ChannelPromise flushedPromise = session.newChannelPromise();
 		flushedPromise.addListener(future -> {
 			session.getChannel().close().addListener(closeFuture -> {
 				session.destroy();

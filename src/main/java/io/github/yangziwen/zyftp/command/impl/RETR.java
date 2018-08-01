@@ -37,7 +37,7 @@ public class RETR implements Command {
 		}
 		long offset = parseOffset(session.getCommandState().getRequest("REST"));
 		FtpResponse response = Command.createResponse(FtpReply.REPLY_150, "RETR", session);
-		response.setFlushedPromise(session.getContext().newPromise().addListener(f -> {
+		response.setFlushedPromise(session.newChannelPromise().addListener(f -> {
 			doSendFileContent(session, request, file, offset);
 		}));
 		return response;
@@ -65,7 +65,7 @@ public class RETR implements Command {
 		promise.addListener(f -> {
 			FtpServerHandler.sendResponse(Command.createResponse(FtpReply.REPLY_226, "RETR", session), session.getContext())
 				.addListener(f2 -> {
-					promise.get().shutdown();
+					promise.get().stop();
 				});
 		});
 	}

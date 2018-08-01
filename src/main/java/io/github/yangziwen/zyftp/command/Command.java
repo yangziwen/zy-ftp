@@ -1,5 +1,8 @@
 package io.github.yangziwen.zyftp.command;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import io.github.yangziwen.zyftp.common.FtpReply;
 import io.github.yangziwen.zyftp.server.FtpRequest;
 import io.github.yangziwen.zyftp.server.FtpResponse;
@@ -9,10 +12,13 @@ import io.netty.util.concurrent.Promise;
 
 public interface Command {
 
+	static Logger log = LoggerFactory.getLogger(Command.class);
+
 	FtpResponse execute(FtpSession session, FtpRequest request);
 
 	default Promise<FtpResponse> executeAsync(FtpSession session, FtpRequest request) {
-		Promise<FtpResponse> promise = session.getChannel().eventLoop().newPromise();
+		log.info("session[{}] send request [{}]", session, request);
+		Promise<FtpResponse> promise = session.newPromise();
 		promise.setSuccess(execute(session, request));
 		return promise;
 	}
