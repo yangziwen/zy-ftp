@@ -3,6 +3,7 @@ package io.github.yangziwen.zyftp.command.impl;
 import io.github.yangziwen.zyftp.command.Command;
 import io.github.yangziwen.zyftp.common.FtpReply;
 import io.github.yangziwen.zyftp.filesystem.FileView;
+import io.github.yangziwen.zyftp.server.FtpDataConnection;
 import io.github.yangziwen.zyftp.server.FtpDataWriter;
 import io.github.yangziwen.zyftp.server.FtpRequest;
 import io.github.yangziwen.zyftp.server.FtpResponse;
@@ -12,6 +13,7 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.DefaultFileRegion;
 import io.netty.channel.FileRegion;
+import io.netty.util.concurrent.Promise;
 
 public class RETR implements Command {
 
@@ -30,7 +32,7 @@ public class RETR implements Command {
 		if (!file.isReadable()) {
 			return Command.createResponse(FtpReply.REPLY_550, "RETR.permission", request, session, file.getVirtualPath());
 		}
-		if (!session.isDataConnectionReady()) {
+		if (!session.isLatestDataConnectionReady()) {
 			return Command.createResponse(FtpReply.REPLY_425, "RETR", request, session, file.getVirtualPath());
 		}
 		long offset = parseOffset(session.getCommandState().getRequest("REST"));
@@ -54,15 +56,16 @@ public class RETR implements Command {
 
 	private void doSendFileContent(FtpSession session, FtpRequest request, FileView file, long offset) {
 		FileRegion region = new DefaultFileRegion(file.getRealFile(), offset, file.getSize());
-		session.writeAndFlushData(new FtpDataWriter() {
+		Promise<FtpDataConnection> promise = session.writeAndFlushData(new FtpDataWriter() {
 			@Override
 			public ChannelFuture writeAndFlushData(Channel ctx) {
 				return ctx.writeAndFlush(region);
 			}
-		}).addListener(f -> {
+		});
+		promise.addListener(f -> {
 			FtpServerHandler.sendResponse(Command.createResponse(FtpReply.REPLY_226, "RETR", session), session.getContext())
 				.addListener(f2 -> {
-					session.shutdownDataConnection();
+					promise.get().shutdown();
 				});
 		});
 	}

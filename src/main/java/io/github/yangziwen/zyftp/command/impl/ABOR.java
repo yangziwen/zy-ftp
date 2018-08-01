@@ -17,7 +17,7 @@ public class ABOR implements Command {
 	@Override
 	public Promise<FtpResponse> executeAsync(FtpSession session, FtpRequest request) {
 		Promise<FtpResponse> promise = session.getContext().channel().eventLoop().newPromise();
-		session.shutdownDataConnection().addListener(f -> {
+		session.shutdownDataConnections().addListener(f -> {
 			FtpResponse response = Command.createResponse(FtpReply.REPLY_226, "ABOR", session);
 			promise.setSuccess(response);
 		});

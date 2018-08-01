@@ -8,6 +8,11 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToByteEncoder;
 import io.netty.util.CharsetUtil;
 
+/**
+ * The ftp response encoder
+ *
+ * @author yangziwen
+ */
 public class FtpResponseEncoder extends MessageToByteEncoder<FtpResponse> {
 
 	@Override

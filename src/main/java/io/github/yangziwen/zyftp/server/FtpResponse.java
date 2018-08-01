@@ -3,6 +3,11 @@ package io.github.yangziwen.zyftp.server;
 import io.netty.channel.ChannelPromise;
 import lombok.Data;
 
+/**
+ * The ftp response
+ *
+ * @author yangziwen
+ */
 @Data
 public class FtpResponse {
 

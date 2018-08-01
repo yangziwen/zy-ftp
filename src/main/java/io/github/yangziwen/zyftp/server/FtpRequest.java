@@ -6,6 +6,11 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * The ftp request
+ *
+ * @author yangziwen
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

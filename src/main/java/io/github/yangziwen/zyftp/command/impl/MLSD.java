@@ -8,6 +8,7 @@ import io.github.yangziwen.zyftp.command.impl.listing.FileFormatter;
 import io.github.yangziwen.zyftp.command.impl.listing.ListArgument;
 import io.github.yangziwen.zyftp.command.impl.listing.MLSTFileFormatter;
 import io.github.yangziwen.zyftp.common.FtpReply;
+import io.github.yangziwen.zyftp.server.FtpDataConnection;
 import io.github.yangziwen.zyftp.server.FtpDataWriter;
 import io.github.yangziwen.zyftp.server.FtpRequest;
 import io.github.yangziwen.zyftp.server.FtpResponse;
@@ -17,6 +18,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.util.CharsetUtil;
+import io.netty.util.concurrent.Promise;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -26,7 +28,7 @@ public class MLSD implements Command {
 
 	@Override
 	public FtpResponse execute(FtpSession session, FtpRequest request) {
-		if (!session.isDataConnectionReady()) {
+		if (!session.isLatestDataConnectionReady()) {
 			return Command.createResponse(FtpReply.REPLY_503, null, request, session, "PORT or PASV must be issued first");
 		}
 		FtpResponse response = Command.createResponse(FtpReply.REPLY_150, "MLSD", session);
@@ -41,17 +43,18 @@ public class MLSD implements Command {
 			ListArgument parsedArg = ListArgument.parse(request.getArgument());
 			FileFormatter formatter = new MLSTFileFormatter(session.getMlstOptionTypes());
 			String content = directoryLister.listFiles(parsedArg, session.getFileSystemView(), formatter);
-			session.writeAndFlushData(new FtpDataWriter() {
+			Promise<FtpDataConnection> promise = session.writeAndFlushData(new FtpDataWriter() {
 				@Override
 				public ChannelFuture writeAndFlushData(Channel channel) {
 					byte[] bytes = content.getBytes(CharsetUtil.UTF_8);
 					ByteBuf buffer = channel.alloc().buffer(bytes.length).writeBytes(bytes);
 					return channel.writeAndFlush(buffer);
 				}
-			}).addListener(f -> {
+			});
+			promise.addListener(f1 -> {
 				FtpServerHandler.sendResponse(Command.createResponse(FtpReply.REPLY_226, "MLSD", session), session.getContext())
 					.addListener(f2 -> {
-						session.shutdownDataConnection();
+						promise.get().shutdown();
 					});
 			});
 		} catch (IOException e) {

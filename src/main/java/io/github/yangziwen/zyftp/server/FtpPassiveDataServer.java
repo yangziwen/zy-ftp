@@ -33,8 +33,13 @@ import io.netty.util.concurrent.Promise;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * The data server of the passive mode
+ *
+ * @author yangziwen
+ */
 @Slf4j
-public class FtpPassiveDataServer {
+public class FtpPassiveDataServer implements FtpDataConnection {
 
 	private FtpSession session;
 
@@ -53,7 +58,7 @@ public class FtpPassiveDataServer {
 	public FtpPassiveDataServer(FtpSession session) {
 		this.session = session;
 		this.serverBootstrap = new ServerBootstrap();
-		session.setPassiveDataServer(this);
+		session.addPassiveDataServer(this);
 		connectedPromise = session.getContext().newPromise();
 	}
 
@@ -92,18 +97,25 @@ public class FtpPassiveDataServer {
 		return this.serverChannelFuture;
 	}
 
-	public Promise<Boolean> writeAndFlushData(FtpDataWriter writer) {
-		Promise<Boolean> promise = session.getChannel().eventLoop().newPromise();
+	@Override
+	public Promise<FtpDataConnection> writeAndFlushData(FtpDataWriter writer) {
+		Promise<FtpDataConnection> promise = session.getChannel().eventLoop().newPromise();
+		if (writer == null) {
+			return promise.setFailure(new NullPointerException("writer cannot be null"));
+		}
 		connectedPromise.addListener(f1 -> {
 			if (!f1.isSuccess()) {
-				promise.setSuccess(false);
+				promise.setFailure(f1.cause());
 			}
-			else if (writer == null || CollectionUtils.isEmpty(clientChannels)) {
-				promise.setSuccess(false);
+			else if (CollectionUtils.isEmpty(clientChannels)) {
+				promise.setFailure(new IllegalStateException("there is no available channel connected to passive server[" + this + "]"));
 			}
 			else {
-				writer.writeAndFlushData(clientChannels.iterator().next()).addListener(f -> {
-					promise.setSuccess(true);
+				writer.writeAndFlushData(clientChannels.iterator().next()).addListener(f2 -> {
+					if (!f2.isSuccess()) {
+						promise.setFailure(f2.cause());
+					}
+					promise.setSuccess(this);
 				});
 			}
 		});
@@ -121,6 +133,7 @@ public class FtpPassiveDataServer {
 			closeClientChannels(clientChannels).addListener(f1 -> {
 				serverChannelFuture.channel().close().addListener(f2 -> {
 					log.info("passive data server of session{} is shut down", session);
+					session.removePassiveDataServer(this);
 					promise.setSuccess(null);
 				});
 			});
@@ -128,7 +141,7 @@ public class FtpPassiveDataServer {
 		return promise;
 	}
 
-	public boolean isRunnning() {
+	public boolean isRunning() {
 		return running.get();
 	}
 
@@ -247,9 +260,7 @@ public class FtpPassiveDataServer {
 					return;
 				}
 				future.addListener(f1 -> {
-					shutdown().addListener(f2 -> {
-						session.setPassiveDataServer(null);
-					});
+					shutdown();
 				});
 			}
 	    }

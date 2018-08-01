@@ -8,6 +8,11 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.util.concurrent.Promise;
 
+/**
+ * The ftp server handler
+ *
+ * @author yangziwen
+ */
 public class FtpServerHandler extends SimpleChannelInboundHandler<FtpRequest> {
 
 	private FtpServerContext serverContext;
@@ -40,19 +45,11 @@ public class FtpServerHandler extends SimpleChannelInboundHandler<FtpRequest> {
     	sendResponse(response, ctx);
     }
 
-    public static ChannelFuture sendResponse(FtpResponse response, ChannelHandlerContext ctx) {
-    	return ctx.writeAndFlush(response).addListener(future -> {
-    		if (response.getFlushedPromise() != null) {
-    			response.getFlushedPromise().setSuccess();
-    		}
-    	});
-    }
-
     @Override
 	public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
     	if (FtpSession.isAllIdleStateEvent(evt)) {
     		FtpSession session = FtpSession.getOrCreateSession(ctx, serverContext);
-    		if (session.isDataConnectionReady()) {
+    		if (session.hasRunningDataConnection()) {
     			return;
     		}
     		if (session.isLoggedIn()) {
@@ -62,6 +59,15 @@ public class FtpServerHandler extends SimpleChannelInboundHandler<FtpRequest> {
     			session.destroy();
     		});
     	}
+    }
+
+
+    public static ChannelFuture sendResponse(FtpResponse response, ChannelHandlerContext ctx) {
+    	return ctx.writeAndFlush(response).addListener(future -> {
+    		if (response.getFlushedPromise() != null) {
+    			response.notifyFlushed();
+    		}
+    	});
     }
 
 }

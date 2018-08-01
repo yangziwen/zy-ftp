@@ -6,6 +6,11 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.LineBasedFrameDecoder;
 import io.netty.util.CharsetUtil;
 
+/**
+ * The ftp request decoder
+ *
+ * @author yangziwen
+ */
 public class FtpRequestDecoder extends LineBasedFrameDecoder {
 
 	public FtpRequestDecoder() {

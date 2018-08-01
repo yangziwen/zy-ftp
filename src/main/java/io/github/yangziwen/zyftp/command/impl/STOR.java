@@ -22,7 +22,7 @@ public class STOR implements Command {
 			return Command.createResponse(FtpReply.REPLY_550, "STOR.invalid", request, session, request.getArgument());
 		}
 
-		if (!session.isDataConnectionReady()) {
+		if (!session.isLatestDataConnectionReady()) {
 			return Command.createResponse(FtpReply.REPLY_425, "STOR", request, session, file.getVirtualPath());
 		}
 
@@ -46,7 +46,7 @@ public class STOR implements Command {
 	}
 
 	private void doReceiveFileContent(FtpSession session, FtpRequest request, FileView file, long offset) {
-		session.getPassiveDataServer().getCloseFuture().addListener(f -> {
+		session.getLatestPassiveDataServer().getCloseFuture().addListener(f -> {
 			FtpServerHandler.sendResponse(Command.createResponse(FtpReply.REPLY_226, "STOR", session), session.getContext());
 		});
 	}

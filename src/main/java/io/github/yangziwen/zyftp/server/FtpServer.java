@@ -1,7 +1,6 @@
 package io.github.yangziwen.zyftp.server;
 
-import io.github.yangziwen.zyftp.server.codec.FtpRequestDecoder;
-import io.github.yangziwen.zyftp.server.codec.FtpResponseEncoder;
+import io.github.yangziwen.zyftp.server.codec.FtpServerCodec;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.Channel;
@@ -13,6 +12,11 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.timeout.IdleStateHandler;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * The ftp server
+ *
+ * @author yangziwen
+ */
 @Slf4j
 public class FtpServer {
 
@@ -32,6 +36,10 @@ public class FtpServer {
 		serverContext.setServer(this);
 	}
 
+	/**
+	 * Start the ftp server
+	 * @throws Exception
+	 */
 	public void start() throws Exception {
 		this.serverBootstrap.group(bossEventLoopGroup, workerEventLoopGroup)
 			.channel(NioServerSocketChannel.class)
@@ -44,15 +52,19 @@ public class FtpServer {
 				@Override
 				protected void initChannel(Channel channel) throws Exception {
 					channel.pipeline()
-						.addLast(new FtpRequestDecoder())
-						.addLast(new FtpResponseEncoder())
+						.addLast(new FtpServerCodec())
 						.addLast(new IdleStateHandler(0, 0, serverContext.getServerConfig().getMaxIdleSeconds()))
 						.addLast(new FtpServerHandler(serverContext));
 				}
 			});
-		this.serverBootstrap.bind().sync();
+		this.serverBootstrap.bind().sync().addListener(f -> {
+			log.info("ftp server is started and listening {}", this.serverContext.getServerConfig().getLocalAddress());
+		});
 	}
 
+	/**
+	 * Stop the ftp server
+	 */
 	public void stop() {
 		try {
 			this.workerEventLoopGroup.shutdownGracefully().sync();
@@ -64,14 +76,7 @@ public class FtpServer {
 		} catch (InterruptedException e) {
 			log.error("failed to shutdown the boss event loop group", e);
 		}
-	}
-
-	public EventLoopGroup getBossEventLoopGroup() {
-		return bossEventLoopGroup;
-	}
-
-	public EventLoopGroup getWorkerEventLoopGroup() {
-		return workerEventLoopGroup;
+		log.info("ftp server is stopped");
 	}
 
 }

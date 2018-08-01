@@ -7,6 +7,11 @@ import io.github.yangziwen.zyftp.user.UserManager;
 import io.github.yangziwen.zyftp.util.PassivePorts;
 import lombok.Getter;
 
+/**
+ * The ftp server context
+ *
+ * @author yangziwen
+ */
 @Getter
 public class FtpServerContext {
 
@@ -25,7 +30,7 @@ public class FtpServerContext {
 	public FtpServerContext() {
 		this.serverConfig = new FtpServerConfig();
 		this.messageResource = new MessageResource();
-		this.passivePorts = new PassivePorts("40000-50000");
+		this.passivePorts = new PassivePorts(serverConfig.getPassivePortsString());
 	}
 
 	public void setServer(FtpServer server) {
