@@ -44,11 +44,11 @@ public class FtpServer {
 		this.serverBootstrap.group(bossEventLoopGroup, workerEventLoopGroup)
 			.channel(NioServerSocketChannel.class)
 			.option(ChannelOption.SO_BACKLOG, 1024)
-	        .option(ChannelOption.SO_REUSEADDR, true)
-	        .childOption(ChannelOption.TCP_NODELAY, true)
-	        .childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
-	        .localAddress(this.serverContext.getServerConfig().getLocalAddress())
-	        .childHandler(new ChannelInitializer<Channel>() {
+			.option(ChannelOption.SO_REUSEADDR, true)
+			.childOption(ChannelOption.TCP_NODELAY, true)
+			.childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
+			.localAddress(this.serverContext.getServerConfig().getLocalAddress())
+			.childHandler(new ChannelInitializer<Channel>() {
 				@Override
 				protected void initChannel(Channel channel) throws Exception {
 					channel.pipeline()

@@ -32,7 +32,7 @@ public class LIST implements Command {
 		if (!session.isLatestDataConnectionReady()) {
 			return Command.createResponse(FtpReply.REPLY_503, null, request, session, "PORT or PASV must be issued first");
 		}
-		FtpResponse response = Command.createResponse(FtpReply.REPLY_150, "MLSD", session);
+		FtpResponse response = Command.createResponse(FtpReply.REPLY_150, "LIST", session);
 		response.setFlushedPromise(session.newChannelPromise().addListener(f -> {
 			doSendFileList(session, request);
 		}));
@@ -52,15 +52,15 @@ public class LIST implements Command {
 				}
 			});
 			promise.addListener(f1 -> {
-				FtpServerHandler.sendResponse(Command.createResponse(FtpReply.REPLY_226, "MLSD", session), session.getContext())
+				FtpServerHandler.sendResponse(Command.createResponse(FtpReply.REPLY_226, "LIST", session), session.getContext())
 					.addListener(f2 -> {
-						promise.get().stop();
+						promise.get().close();
 					});
 			});
 		} catch (IOException e) {
 			log.error("failed to get the file list in directory of {}",
 					session.getFileSystemView().getCurrentDirectory().getVirtualPath(), e);
-			FtpServerHandler.sendResponse(Command.createResponse(FtpReply.REPLY_425, "MLSD", session), session.getContext());
+			FtpServerHandler.sendResponse(Command.createResponse(FtpReply.REPLY_425, "LIST", session), session.getContext());
 		}
 	}
 

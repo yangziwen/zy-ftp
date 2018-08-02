@@ -17,7 +17,7 @@ public interface Command {
 	FtpResponse execute(FtpSession session, FtpRequest request);
 
 	default Promise<FtpResponse> executeAsync(FtpSession session, FtpRequest request) {
-		log.info("session[{}] send request [{}]", session, request);
+		log.info("session[{}] receive request [{}]", session, request);
 		Promise<FtpResponse> promise = session.newPromise();
 		promise.setSuccess(execute(session, request));
 		return promise;

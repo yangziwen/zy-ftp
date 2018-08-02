@@ -23,6 +23,9 @@ public class OtherState extends AbstractCommandState<OtherState> {
 		if ("STOR".equals(request.getCommand())) {
 			return new StorState().putRequest("STOR", request);
 		}
+		if ("PORT".equals(request.getCommand())) {
+			return new PortState();
+		}
 		return this;
 	}
 

@@ -54,7 +54,7 @@ public class MLSD implements Command {
 			promise.addListener(f1 -> {
 				FtpServerHandler.sendResponse(Command.createResponse(FtpReply.REPLY_226, "MLSD", session), session.getContext())
 					.addListener(f2 -> {
-						promise.get().stop();
+						promise.get().close();
 					});
 			});
 		} catch (IOException e) {

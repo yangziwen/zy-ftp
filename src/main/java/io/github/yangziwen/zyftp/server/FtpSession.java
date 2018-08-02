@@ -6,6 +6,7 @@ import java.util.concurrent.ConcurrentHashMap.KeySetView;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import io.github.yangziwen.zyftp.command.impl.state.CommandState;
 import io.github.yangziwen.zyftp.command.impl.state.OtherState;
@@ -59,6 +60,10 @@ public class FtpSession {
 	private KeySetView<FtpPassiveDataServer, Boolean> passiveDataServers = ConcurrentHashMap.newKeySet();
 
 	private AtomicReference<FtpPassiveDataServer> latestPassiveDataServer = new AtomicReference<>();
+
+	private KeySetView<FtpPortDataClient, Boolean> portDataClients = ConcurrentHashMap.newKeySet();
+
+	private AtomicReference<FtpPortDataClient> latestPortDataClient = new AtomicReference<FtpPortDataClient>();
 
 	public FtpSession(ChannelHandlerContext context, FtpServerContext serverContext) {
 		this.context = context;
@@ -142,6 +147,20 @@ public class FtpSession {
 		this.dataConnectionType = dataConnectionType;
 	}
 
+	public void addPortDataClient(FtpPortDataClient portDataClient) {
+		portDataClients.add(portDataClient);
+		latestPortDataClient.set(portDataClient);
+	}
+
+	public void removePortDataClient(FtpPortDataClient portDataClient) {
+		portDataClients.remove(portDataClient);
+		latestPortDataClient.compareAndSet(portDataClient, null);
+	}
+
+	public FtpPortDataClient getLatestPortDataClient() {
+		return latestPortDataClient.get();
+	}
+
 	public void addPassiveDataServer(FtpPassiveDataServer passiveDataServer) {
 		passiveDataServers.add(passiveDataServer);
 		latestPassiveDataServer.set(passiveDataServer);
@@ -156,13 +175,24 @@ public class FtpSession {
 		return latestPassiveDataServer.get();
 	}
 
+	public FtpDataConnection getLatestDataConnection() {
+		if (dataConnectionType == DataConnectionType.PASV) {
+			return latestPassiveDataServer.get();
+		}
+		if (dataConnectionType == DataConnectionType.PORT) {
+			return latestPortDataClient.get();
+		}
+		return null;
+	}
+
 	public boolean isLatestDataConnectionReady() {
 		if (dataConnectionType == DataConnectionType.PASV) {
 			FtpPassiveDataServer latestPassiveDataServer = this.latestPassiveDataServer.get();
 			return latestPassiveDataServer != null && latestPassiveDataServer.isRunning();
 		}
 		if (dataConnectionType == DataConnectionType.PORT) {
-			// TODO PORT
+			FtpPortDataClient latestPortDataClient = this.latestPortDataClient.get();
+			return latestPortDataClient != null && latestPortDataClient.isConnected();
 		}
 		return false;
 	}
@@ -172,7 +202,7 @@ public class FtpSession {
 			return passiveDataServers.stream().anyMatch(FtpPassiveDataServer::isRunning);
 		}
 		if (dataConnectionType == DataConnectionType.PORT) {
-			// TODO PORT
+			return portDataClients.stream().anyMatch(FtpPortDataClient::isConnected);
 		}
 		return false;
 	}
@@ -182,7 +212,7 @@ public class FtpSession {
 			return latestPassiveDataServer.get().writeAndFlushData(writer);
 		}
 		if (dataConnectionType == DataConnectionType.PORT) {
-			// TODO PORT
+			return latestPortDataClient.get().writeAndFlushData(writer);
 		}
 		Promise<FtpDataConnection> promise = this.<FtpDataConnection>newPromise();
 		Exception error = new IllegalStateException(String.format("the data connection of session[%s] is not available", this));
@@ -214,11 +244,11 @@ public class FtpSession {
 		this.loggedIn = false;
 	}
 
-	public Promise<Void> shutdownDataConnections() {
+	public Promise<Void> closeDataConnections() {
 		Promise<Void> finishedPromise = newPromise();
-		List<Promise<Void>> promises = passiveDataServers.stream()
-				.map(FtpPassiveDataServer::stop).collect(Collectors.toList());
-		// TODO for PORT mode
+		List<Promise<Void>> promises = Stream.concat(passiveDataServers.stream(), portDataClients.stream())
+				.map(FtpDataConnection::close)
+				.collect(Collectors.toList());
 		AtomicInteger counter = new AtomicInteger(promises.size());
 		promises.forEach(promise -> {
 			promise.addListener(f -> {
@@ -234,7 +264,7 @@ public class FtpSession {
 		if (isLoggedIn()) {
 			logout();
 		}
-		shutdownDataConnections();
+		closeDataConnections();
 	}
 
 	public static boolean isAnonymous(User user) {

@@ -46,7 +46,7 @@ public class STOR implements Command {
 	}
 
 	private void doReceiveFileContent(FtpSession session, FtpRequest request, FileView file, long offset) {
-		session.getLatestPassiveDataServer().getCloseFuture().addListener(f -> {
+		session.getLatestDataConnection().getCloseFuture().addListener(f -> {
 			FtpServerHandler.sendResponse(Command.createResponse(FtpReply.REPLY_226, "STOR", session), session.getContext());
 		});
 	}

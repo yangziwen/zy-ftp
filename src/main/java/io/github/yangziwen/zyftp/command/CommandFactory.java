@@ -18,6 +18,7 @@ import io.github.yangziwen.zyftp.command.impl.NOOP;
 import io.github.yangziwen.zyftp.command.impl.OPTS;
 import io.github.yangziwen.zyftp.command.impl.PASS;
 import io.github.yangziwen.zyftp.command.impl.PASV;
+import io.github.yangziwen.zyftp.command.impl.PORT;
 import io.github.yangziwen.zyftp.command.impl.PWD;
 import io.github.yangziwen.zyftp.command.impl.QUIT;
 import io.github.yangziwen.zyftp.command.impl.RETR;
@@ -43,6 +44,7 @@ public interface CommandFactory {
 			.put("OPTS", new OPTS())
 			.put("TYPE", new TYPE())
 			.put("PASV", new PASV())
+			.put("PORT", new PORT())
 			.put("PWD", new PWD())
 			.put("CWD", new CWD())
 			.put("CDUP", new CDUP())

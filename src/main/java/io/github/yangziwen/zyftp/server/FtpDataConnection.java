@@ -1,5 +1,6 @@
 package io.github.yangziwen.zyftp.server;
 
+import io.netty.channel.ChannelFuture;
 import io.netty.util.concurrent.Promise;
 
 /**
@@ -12,6 +13,10 @@ public interface FtpDataConnection {
 
 	Promise<FtpDataConnection> writeAndFlushData(FtpDataWriter writer);
 
-	Promise<Void> stop();
+	Promise<Void> close();
+
+	FtpSession getSession();
+
+	ChannelFuture getCloseFuture();
 
 }

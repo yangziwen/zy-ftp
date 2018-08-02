@@ -65,7 +65,7 @@ public class RETR implements Command {
 		promise.addListener(f -> {
 			FtpServerHandler.sendResponse(Command.createResponse(FtpReply.REPLY_226, "RETR", session), session.getContext())
 				.addListener(f2 -> {
-					promise.get().stop();
+					promise.get().close();
 				});
 		});
 	}
