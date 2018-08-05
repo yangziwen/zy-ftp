@@ -6,6 +6,7 @@ import java.nio.channels.FileChannel;
 
 import org.apache.commons.lang3.math.NumberUtils;
 
+import io.github.yangziwen.zyftp.command.impl.state.AppeState;
 import io.github.yangziwen.zyftp.command.impl.state.CommandState;
 import io.github.yangziwen.zyftp.command.impl.state.StorState;
 import io.github.yangziwen.zyftp.filesystem.FileView;
@@ -27,11 +28,16 @@ public class UploadFileInfo {
 		this.offset = -1;
 		this.file = null;
 		CommandState state = session.getCommandState();
-		if (!StorState.class.isInstance(state)) {
+		if (!StorState.class.isInstance(state) && !AppeState.class.isInstance(state)) {
 			return;
 		}
-		FtpRequest restRequest = state.getRequest("REST");
-		this.offset = restRequest == null ? 0 : NumberUtils.toLong(restRequest.getArgument());
+		this.offset = 0;
+		if (state.getRequest("REST") != null) {
+			this.offset = NumberUtils.toLong(state.getRequest("REST").getArgument());
+		}
+		if (state.getRequest("APPE") != null) {
+			this.offset = NumberUtils.toLong(state.getRequest("APPE").getArgument());
+		}
 		this.file = getUploadFile(session, state);
 	}
 
@@ -46,7 +52,12 @@ public class UploadFileInfo {
 	}
 
 	private RandomAccessFile getUploadFile(FtpSession session, CommandState commandState) {
-    	String fileName = commandState.getRequest("STOR").getArgument();
+    	String fileName = "";
+    	if (commandState instanceof StorState) {
+    		fileName = commandState.getRequest("STOR").getArgument();
+    	} else if (commandState instanceof AppeState) {
+    		fileName = commandState.getRequest("APPE").getArgument();
+    	}
     	FileView fileView = session.getFileSystemView().getFile(fileName);
     	if (fileView == null) {
     		return null;

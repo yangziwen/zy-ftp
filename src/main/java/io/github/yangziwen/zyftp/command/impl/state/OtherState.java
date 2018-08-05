@@ -26,6 +26,9 @@ public class OtherState extends AbstractCommandState<OtherState> {
 		if ("PORT".equals(request.getCommand())) {
 			return new PortState();
 		}
+		if ("APPE".equals(request.getCommand())) {
+			return new AppeState().putRequest("APPE", request);
+		}
 		return this;
 	}
 

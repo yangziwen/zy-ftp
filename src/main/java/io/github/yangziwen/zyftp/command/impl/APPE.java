@@ -8,25 +8,27 @@ import io.github.yangziwen.zyftp.server.FtpResponse;
 import io.github.yangziwen.zyftp.server.FtpServerHandler;
 import io.github.yangziwen.zyftp.server.FtpSession;
 
-public class STOR implements Command {
+public class APPE implements Command {
 
 	@Override
 	public FtpResponse execute(FtpSession session, FtpRequest request) {
-
 		if (!request.hasArgument()) {
-			return Command.createResponse(FtpReply.REPLY_501, "STOR", session);
+			return Command.createResponse(FtpReply.REPLY_501, "APPE", session);
 		}
 
 		FileView file = session.getFileSystemView().getFile(request.getArgument());
 		if (file == null) {
-			return Command.createResponse(FtpReply.REPLY_550, "STOR.invalid", request, session, request.getArgument());
+			return Command.createResponse(FtpReply.REPLY_550, "APPE", session);
+		}
+		if (file.doesExist() && !file.isFile()) {
+			return Command.createResponse(FtpReply.REPLY_550, "APPE.invalid", session);
 		}
 
 		if (!session.isLatestDataConnectionReady()) {
-			return Command.createResponse(FtpReply.REPLY_425, "STOR", request, session, file.getVirtualPath());
+			return Command.createResponse(FtpReply.REPLY_425, "APPE", session);
 		}
 
-		FtpResponse response = Command.createResponse(FtpReply.REPLY_150, "STOR", session);
+		FtpResponse response = Command.createResponse(FtpReply.REPLY_150, "APPE", session);
 		response.setFlushedPromise(session.newChannelPromise().addListener(f -> {
 			doReceiveFileContent(session, request, file);
 		}));
@@ -35,7 +37,7 @@ public class STOR implements Command {
 
 	private void doReceiveFileContent(FtpSession session, FtpRequest request, FileView file) {
 		session.getLatestDataConnection().getCloseFuture().addListener(f -> {
-			FtpServerHandler.sendResponse(Command.createResponse(FtpReply.REPLY_226, "STOR", session), session.getContext());
+			FtpServerHandler.sendResponse(Command.createResponse(FtpReply.REPLY_226, "APPE", session), session.getContext());
 		});
 	}
 
