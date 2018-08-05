@@ -35,9 +35,6 @@ public class UploadFileInfo {
 		if (state.getRequest("REST") != null) {
 			this.offset = NumberUtils.toLong(state.getRequest("REST").getArgument());
 		}
-		if (state.getRequest("APPE") != null) {
-			this.offset = NumberUtils.toLong(state.getRequest("APPE").getArgument());
-		}
 		this.file = getUploadFile(session, state);
 	}
 

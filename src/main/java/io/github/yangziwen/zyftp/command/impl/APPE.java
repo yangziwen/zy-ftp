@@ -1,6 +1,7 @@
 package io.github.yangziwen.zyftp.command.impl;
 
 import io.github.yangziwen.zyftp.command.Command;
+import io.github.yangziwen.zyftp.command.impl.state.AppeState;
 import io.github.yangziwen.zyftp.common.FtpReply;
 import io.github.yangziwen.zyftp.filesystem.FileView;
 import io.github.yangziwen.zyftp.server.FtpRequest;
@@ -26,6 +27,11 @@ public class APPE implements Command {
 
 		if (!session.isLatestDataConnectionReady()) {
 			return Command.createResponse(FtpReply.REPLY_425, "APPE", session);
+		}
+
+		if (file.getSize() > 0) {
+			FtpRequest restRequest = new FtpRequest("REST", String.valueOf(file.getSize()));
+			((AppeState) session.getCommandState()).putRequest(restRequest);
 		}
 
 		FtpResponse response = Command.createResponse(FtpReply.REPLY_150, "APPE", session);

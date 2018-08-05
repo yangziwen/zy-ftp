@@ -15,19 +15,19 @@ public class OtherState extends AbstractCommandState<OtherState> {
 	@Override
 	public CommandState transferTo(FtpRequest request) {
 		if ("RNFR".equals(request.getCommand()) && request.hasArgument()) {
-			return new RenameFromState().putRequest("RNFR", request);
+			return new RenameFromState().putRequest(request);
 		}
 		if ("REST".equals(request.getCommand()) && request.hasArgument()) {
-			return new RetrState(requestMap).putRequest("REST", request);
+			return new RetrState(requestMap).putRequest(request);
 		}
 		if ("STOR".equals(request.getCommand())) {
-			return new StorState().putRequest("STOR", request);
+			return new StorState().putRequest(request);
 		}
 		if ("PORT".equals(request.getCommand())) {
 			return new PortState();
 		}
 		if ("APPE".equals(request.getCommand())) {
-			return new AppeState().putRequest("APPE", request);
+			return new AppeState().putRequest(request);
 		}
 		return this;
 	}

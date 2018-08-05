@@ -8,6 +8,10 @@ import lombok.Data;
 @Data
 public class FtpServerConfig {
 
+	public static final long DEFAULT_UPLOAD_BYTES_PER_SECOND = 200 * 1024L;
+
+	public static final long DEFAULT_DOWNLOAD_BYTES_PER_SECOND = 200 * 1024L;
+
 	// TODO 参数需要可配置
 
 	private SocketAddress localAddress;

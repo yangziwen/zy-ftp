@@ -4,6 +4,7 @@ import java.io.File;
 
 import org.apache.commons.lang3.StringUtils;
 
+import io.github.yangziwen.zyftp.config.FtpServerConfig;
 import io.github.yangziwen.zyftp.filesystem.FileView;
 import lombok.Data;
 
@@ -17,6 +18,10 @@ public class User {
 	private int maxIdleTime;
 
 	private String homeDirectory;
+
+	private long uploadBytesPerSecond = FtpServerConfig.DEFAULT_UPLOAD_BYTES_PER_SECOND;
+
+	private long downloadBytesPerSecond = FtpServerConfig.DEFAULT_DOWNLOAD_BYTES_PER_SECOND;
 
 	public User() {}
 

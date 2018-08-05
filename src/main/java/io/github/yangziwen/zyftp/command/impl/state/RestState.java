@@ -13,10 +13,13 @@ public class RestState extends AbstractCommandState<RestState> {
 	@Override
 	public CommandState transferTo(FtpRequest request) {
 		if ("RETR".equals(request.getCommand())) {
-			return new RetrState(requestMap).putRequest("RETR", request);
+			return new RetrState(requestMap).putRequest(request);
 		}
 		if ("STOR".equals(request.getCommand())) {
-			return new StorState(requestMap).putRequest("STOR", request);
+			return new StorState(requestMap).putRequest(request);
+		}
+		if ("APPE".equals(request.getCommand())) {
+			return new AppeState(requestMap).putRequest(request);
 		}
 		return OtherState.INSTANCE.transferTo(request);
 	}

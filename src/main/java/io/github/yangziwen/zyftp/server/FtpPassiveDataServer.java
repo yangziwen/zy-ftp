@@ -22,6 +22,7 @@ import io.netty.channel.ChannelPromise;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.timeout.IdleStateHandler;
+import io.netty.handler.traffic.ChannelTrafficShapingHandler;
 import io.netty.util.concurrent.Promise;
 import lombok.extern.slf4j.Slf4j;
 
@@ -78,6 +79,7 @@ public class FtpPassiveDataServer implements FtpDataConnection {
 				@Override
 				protected void initChannel(Channel channel) throws Exception {
 					channel.pipeline()
+						.addLast(new ChannelTrafficShapingHandler(session.getDownloadBytesPerSecond(), session.getUploadBytesPerSecond(), 500))
 						.addLast(new IdleStateHandler(0, 0, session.getServerConfig().getDataConnectionMaxIdleSeconds()))
 						.addLast(new PassiveDataServerHandler());
 					if (clientChannels.add(channel)) {

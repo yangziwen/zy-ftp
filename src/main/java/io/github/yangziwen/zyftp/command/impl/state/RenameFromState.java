@@ -13,7 +13,7 @@ public class RenameFromState extends AbstractCommandState<RenameFromState> {
 	@Override
 	public CommandState transferTo(FtpRequest request) {
 		if ("RNTO".equals(request.getCommand())) {
-			return new RenameToState(requestMap).putRequest("RNTO", request);
+			return new RenameToState(requestMap).putRequest(request);
 		}
 		return OtherState.INSTANCE.transferTo(request);
 	}

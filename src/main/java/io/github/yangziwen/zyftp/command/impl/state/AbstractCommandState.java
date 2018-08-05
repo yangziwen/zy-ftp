@@ -13,13 +13,14 @@ public abstract class AbstractCommandState<T> implements CommandState {
 	}
 
 	@SuppressWarnings("unchecked")
-	public T putRequest(String key, FtpRequest request) {
-		requestMap.put(key, request);
+	public T putRequest(FtpRequest request) {
+		requestMap.put(request.getCommand(), request);
 		return (T) this;
 	}
 
-	public FtpRequest getRequest(String key) {
-		return requestMap.get(key);
+	@Override
+	public FtpRequest getRequest(String command) {
+		return requestMap.get(command);
 	}
 
 }

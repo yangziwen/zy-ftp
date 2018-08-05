@@ -83,6 +83,14 @@ public class FtpSession {
 		return this.user;
 	}
 
+	public long getDownloadBytesPerSecond() {
+		return this.user.getDownloadBytesPerSecond();
+	}
+
+	public long getUploadBytesPerSecond() {
+		return this.user.getUploadBytesPerSecond();
+	}
+
 	public boolean isLoggedIn() {
 		return loggedIn;
 	}
