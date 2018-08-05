@@ -11,7 +11,7 @@ import io.netty.util.concurrent.Promise;
  */
 public interface FtpDataConnection {
 
-	Promise<FtpDataConnection> writeAndFlushData(FtpDataWriter writer);
+	Promise<Void> writeAndFlushData(FtpDataWriter writer);
 
 	Promise<Void> close();
 

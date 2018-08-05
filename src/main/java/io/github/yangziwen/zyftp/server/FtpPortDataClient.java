@@ -50,9 +50,9 @@ public class FtpPortDataClient implements FtpDataConnection {
 		EventLoopGroup eventLoopGroup = session.getChannel().eventLoop();
 		this.channelFuture = this.bootstrap.group(eventLoopGroup)
 				.channel(NioSocketChannel.class)
-		        .option(ChannelOption.SO_REUSEADDR, true)
-		        .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
-		        .handler(new ChannelInitializer<Channel>() {
+				.option(ChannelOption.SO_REUSEADDR, true)
+				.option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
+				.handler(new ChannelInitializer<Channel>() {
 					@Override
 					protected void initChannel(Channel channel) throws Exception {
 						channel.pipeline()
@@ -70,8 +70,8 @@ public class FtpPortDataClient implements FtpDataConnection {
 	}
 
 	@Override
-	public Promise<FtpDataConnection> writeAndFlushData(FtpDataWriter writer) {
-		Promise<FtpDataConnection> promise = session.newPromise();
+	public Promise<Void> writeAndFlushData(FtpDataWriter writer) {
+		Promise<Void> promise = session.newPromise();
 		if (writer == null) {
 			return promise.setFailure(new NullPointerException("writer cannot be null"));
 		}
@@ -87,7 +87,7 @@ public class FtpPortDataClient implements FtpDataConnection {
 					if (!f2.isSuccess()) {
 						promise.setFailure(f2.cause());
 					} else {
-						promise.setSuccess(this);
+						promise.setSuccess(null);
 					}
 				});
 			}
@@ -135,33 +135,33 @@ public class FtpPortDataClient implements FtpDataConnection {
 	class PortDataClientHandler extends ChannelDuplexHandler {
 
 		@Override
-	    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-	    	if (uploadFileInfoRef.get() == null) {
-	    		uploadFileInfoRef.compareAndSet(null, new UploadFileInfo(session));
-	    	}
-	    	UploadFileInfo uploadFileInfo = uploadFileInfoRef.get();
-	    	if (!uploadFileInfo.isValid()) {
-	    		return;
-	    	}
-	        ByteBuf buffer = (ByteBuf) msg;
-	        int length = 0;
-	        while ((length = buffer.readableBytes()) > 0) {
-	        	buffer.readBytes(uploadFileInfo.getFileChannel(), uploadFileInfo.getAndAddOffset(length), length);
-	        }
-	    }
+		public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+			if (uploadFileInfoRef.get() == null) {
+				uploadFileInfoRef.compareAndSet(null, new UploadFileInfo(session));
+			}
+			UploadFileInfo uploadFileInfo = uploadFileInfoRef.get();
+			if (!uploadFileInfo.isValid()) {
+				return;
+			}
+			ByteBuf buffer = (ByteBuf) msg;
+			int length = 0;
+			while ((length = buffer.readableBytes()) > 0) {
+				buffer.readBytes(uploadFileInfo.getFileChannel(), uploadFileInfo.getAndAddOffset(length), length);
+			}
+		}
 
-	    @Override
-	    public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
-	    	UploadFileInfo uploadFileInfo = uploadFileInfoRef.get();
-	    	if (uploadFileInfo == null) {
-	    		return;
-	    	}
-	    	if (uploadFileInfo.getOffset() > uploadFileInfo.getReceivedTotalBytes()) {
-	    		uploadFileInfo.setReceivedTotalBytes(uploadFileInfo.getOffset());
-	    	} else {
-	    		FtpPortDataClient.this.close();
-	    	}
-	    }
+		@Override
+		public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
+			UploadFileInfo uploadFileInfo = uploadFileInfoRef.get();
+			if (uploadFileInfo == null) {
+				return;
+			}
+			if (uploadFileInfo.getOffset() > uploadFileInfo.getReceivedTotalBytes()) {
+				uploadFileInfo.setReceivedTotalBytes(uploadFileInfo.getOffset());
+			} else {
+				FtpPortDataClient.this.close();
+			}
+		}
 
 
 		@Override
@@ -171,14 +171,14 @@ public class FtpPortDataClient implements FtpDataConnection {
 					FtpPortDataClient.this.close();
 				});
 			}
-	    }
+		}
 
 		@Override
-	    public void disconnect(ChannelHandlerContext ctx, ChannelPromise promise) throws Exception {
-	        promise.addListener(f -> {
-	        	FtpPortDataClient.this.close();
-	        });
-	    }
+		public void disconnect(ChannelHandlerContext ctx, ChannelPromise promise) throws Exception {
+			promise.addListener(f -> {
+				FtpPortDataClient.this.close();
+			});
+		}
 
 
 	}

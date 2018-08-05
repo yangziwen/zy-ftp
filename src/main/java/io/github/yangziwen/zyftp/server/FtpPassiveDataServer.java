@@ -21,6 +21,7 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.ChannelPromise;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.handler.stream.ChunkedWriteHandler;
 import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.handler.traffic.ChannelTrafficShapingHandler;
 import io.netty.util.concurrent.Promise;
@@ -72,15 +73,16 @@ public class FtpPassiveDataServer implements FtpDataConnection {
 		this.serverChannelFuture = this.serverBootstrap.group(eventLoopGroup, eventLoopGroup)
 			.channel(NioServerSocketChannel.class)
 			.option(ChannelOption.SO_BACKLOG, 1024)
-	        .option(ChannelOption.SO_REUSEADDR, true)
-	        .childOption(ChannelOption.TCP_NODELAY, true)
-	        .childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
-	        .childHandler(new ChannelInitializer<Channel>() {
+			.option(ChannelOption.SO_REUSEADDR, true)
+			.childOption(ChannelOption.TCP_NODELAY, true)
+			.childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
+			.childHandler(new ChannelInitializer<Channel>() {
 				@Override
 				protected void initChannel(Channel channel) throws Exception {
 					channel.pipeline()
 						.addLast(new ChannelTrafficShapingHandler(session.getDownloadBytesPerSecond(), session.getUploadBytesPerSecond(), 500))
 						.addLast(new IdleStateHandler(0, 0, session.getServerConfig().getDataConnectionMaxIdleSeconds()))
+						.addLast(new ChunkedWriteHandler())
 						.addLast(new PassiveDataServerHandler());
 					if (clientChannels.add(channel)) {
 						connectedPromise.setSuccess(null);
@@ -102,8 +104,8 @@ public class FtpPassiveDataServer implements FtpDataConnection {
 	}
 
 	@Override
-	public Promise<FtpDataConnection> writeAndFlushData(FtpDataWriter writer) {
-		Promise<FtpDataConnection> promise = session.newPromise();
+	public Promise<Void> writeAndFlushData(FtpDataWriter writer) {
+		Promise<Void> promise = session.newPromise();
 		if (writer == null) {
 			return promise.setFailure(new NullPointerException("writer cannot be null"));
 		}
@@ -119,7 +121,7 @@ public class FtpPassiveDataServer implements FtpDataConnection {
 					if (!f2.isSuccess()) {
 						promise.setFailure(f2.cause());
 					} else {
-						promise.setSuccess(this);
+						promise.setSuccess(null);
 					}
 				});
 			}
@@ -176,34 +178,34 @@ public class FtpPassiveDataServer implements FtpDataConnection {
 
 	class PassiveDataServerHandler extends ChannelDuplexHandler {
 
-	    @Override
-	    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-	    	if (uploadFileInfoRef.get() == null) {
-	    		uploadFileInfoRef.compareAndSet(null, new UploadFileInfo(session));
-	    	}
-	    	UploadFileInfo uploadFileInfo = uploadFileInfoRef.get();
-	    	if (!uploadFileInfo.isValid()) {
-	    		return;
-	    	}
-	        ByteBuf buffer = (ByteBuf) msg;
-	        int length = 0;
-	        while ((length = buffer.readableBytes()) > 0) {
-	        	buffer.readBytes(uploadFileInfo.getFileChannel(), uploadFileInfo.getAndAddOffset(length), length);
-	        }
-	    }
+		@Override
+		public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+			if (uploadFileInfoRef.get() == null) {
+				uploadFileInfoRef.compareAndSet(null, new UploadFileInfo(session));
+			}
+			UploadFileInfo uploadFileInfo = uploadFileInfoRef.get();
+			if (!uploadFileInfo.isValid()) {
+				return;
+			}
+			ByteBuf buffer = (ByteBuf) msg;
+			int length = 0;
+			while ((length = buffer.readableBytes()) > 0) {
+				buffer.readBytes(uploadFileInfo.getFileChannel(), uploadFileInfo.getAndAddOffset(length), length);
+			}
+		}
 
-	    @Override
-	    public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
-	    	UploadFileInfo uploadFileInfo = uploadFileInfoRef.get();
-	    	if (uploadFileInfo == null) {
-	    		return;
-	    	}
-	    	if (uploadFileInfo.getOffset() > uploadFileInfo.getReceivedTotalBytes()) {
-	    		uploadFileInfo.setReceivedTotalBytes(uploadFileInfo.getOffset());
-	    	} else {
-	    		FtpPassiveDataServer.this.close();
-	    	}
-	    }
+		@Override
+		public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
+			UploadFileInfo uploadFileInfo = uploadFileInfoRef.get();
+			if (uploadFileInfo == null) {
+				return;
+			}
+			if (uploadFileInfo.getOffset() > uploadFileInfo.getReceivedTotalBytes()) {
+				uploadFileInfo.setReceivedTotalBytes(uploadFileInfo.getOffset());
+			} else {
+				FtpPassiveDataServer.this.close();
+			}
+		}
 
 		@Override
 		public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
@@ -217,14 +219,14 @@ public class FtpPassiveDataServer implements FtpDataConnection {
 					FtpPassiveDataServer.this.close();
 				});
 			}
-	    }
+		}
 
 		@Override
-	    public void disconnect(ChannelHandlerContext ctx, ChannelPromise promise) throws Exception {
-	        promise.addListener(f -> {
-	        	FtpPassiveDataServer.this.close();
-	        });
-	    }
+		public void disconnect(ChannelHandlerContext ctx, ChannelPromise promise) throws Exception {
+			promise.addListener(f -> {
+				FtpPassiveDataServer.this.close();
+			});
+		}
 
 	}
 

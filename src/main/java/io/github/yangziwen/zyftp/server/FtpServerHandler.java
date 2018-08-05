@@ -54,36 +54,36 @@ public class FtpServerHandler extends SimpleChannelInboundHandler<FtpRequest> {
 		}
 	}
 
-    @Override
-    public void channelActive(ChannelHandlerContext ctx) throws Exception {
-    	FtpSession session = FtpSession.getOrCreateSession(ctx, serverContext);
-    	FtpResponse response = Command.createResponse(FtpReply.REPLY_220, session);
-    	sendResponse(response, ctx);
-    }
+	@Override
+	public void channelActive(ChannelHandlerContext ctx) throws Exception {
+		FtpSession session = FtpSession.getOrCreateSession(ctx, serverContext);
+		FtpResponse response = Command.createResponse(FtpReply.REPLY_220, session);
+		sendResponse(response, ctx);
+	}
 
-    @Override
+	@Override
 	public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
-    	if (FtpSession.isAllIdleStateEvent(evt)) {
-    		FtpSession session = FtpSession.getOrCreateSession(ctx, serverContext);
-    		if (session.hasRunningDataConnection()) {
-    			return;
-    		}
-    		if (session.isLoggedIn()) {
-    			session.logout();
-    		}
-    		session.getChannel().close().addListener(closeFuture -> {
-    			session.destroy();
-    		});
-    	}
-    }
+		if (FtpSession.isAllIdleStateEvent(evt)) {
+			FtpSession session = FtpSession.getOrCreateSession(ctx, serverContext);
+			if (session.hasRunningDataConnection()) {
+				return;
+			}
+			if (session.isLoggedIn()) {
+				session.logout();
+			}
+			session.getChannel().close().addListener(closeFuture -> {
+				session.destroy();
+			});
+		}
+	}
 
 
-    public static ChannelFuture sendResponse(FtpResponse response, ChannelHandlerContext ctx) {
-    	return ctx.writeAndFlush(response).addListener(future -> {
-    		if (response.getFlushedPromise() != null) {
-    			response.notifyFlushed();
-    		}
-    	});
-    }
+	public static ChannelFuture sendResponse(FtpResponse response, ChannelHandlerContext ctx) {
+		return ctx.writeAndFlush(response).addListener(future -> {
+			if (response.getFlushedPromise() != null) {
+				response.notifyFlushed();
+			}
+		});
+	}
 
 }

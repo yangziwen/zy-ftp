@@ -49,22 +49,22 @@ public class UploadFileInfo {
 	}
 
 	private RandomAccessFile getUploadFile(FtpSession session, CommandState commandState) {
-    	String fileName = "";
-    	if (commandState instanceof StorState) {
-    		fileName = commandState.getRequest("STOR").getArgument();
-    	} else if (commandState instanceof AppeState) {
-    		fileName = commandState.getRequest("APPE").getArgument();
-    	}
-    	FileView fileView = session.getFileSystemView().getFile(fileName);
-    	if (fileView == null) {
-    		return null;
-    	}
-    	try {
+		String fileName = "";
+		if (commandState instanceof StorState) {
+			fileName = commandState.getRequest("STOR").getArgument();
+		} else if (commandState instanceof AppeState) {
+			fileName = commandState.getRequest("APPE").getArgument();
+		}
+		FileView fileView = session.getFileSystemView().getFile(fileName);
+		if (fileView == null) {
+			return null;
+		}
+		try {
 			return new RandomAccessFile(fileView.getRealFile(), "rw");
 		} catch (Exception e) {
 			return null;
 		}
-    }
+	}
 
 	public FileChannel getFileChannel() {
 		return file != null ? file.getChannel() : null;

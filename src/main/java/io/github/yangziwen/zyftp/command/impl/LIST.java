@@ -43,7 +43,8 @@ public class LIST implements Command {
 		try {
 			ListArgument parsedArg = ListArgument.parse(request.getArgument());
 			String content = directoryLister.listFiles(parsedArg, session.getFileSystemView(), LIST_FILE_FORMATER);
-			Promise<FtpDataConnection> promise = session.writeAndFlushData(new FtpDataWriter() {
+			FtpDataConnection dataConnection = session.getLatestDataConnection();
+			Promise<Void> promise = dataConnection.writeAndFlushData(new FtpDataWriter() {
 				@Override
 				public ChannelFuture writeAndFlushData(Channel channel) {
 					byte[] bytes = content.getBytes(CharsetUtil.UTF_8);
@@ -52,10 +53,13 @@ public class LIST implements Command {
 				}
 			});
 			promise.addListener(f1 -> {
+				if (!promise.isSuccess()) {
+					FtpServerHandler.sendResponse(Command.createResponse(FtpReply.REPLY_551, "LIST", session), session.getContext());
+					dataConnection.close();
+					return;
+				}
 				FtpServerHandler.sendResponse(Command.createResponse(FtpReply.REPLY_226, "LIST", session), session.getContext())
-					.addListener(f2 -> {
-						promise.get().close();
-					});
+					.addListener(f2 -> dataConnection.close());
 			});
 		} catch (IOException e) {
 			log.error("failed to get the file list in directory of {}",

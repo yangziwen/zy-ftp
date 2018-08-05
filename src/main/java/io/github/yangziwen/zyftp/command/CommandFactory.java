@@ -22,6 +22,7 @@ import io.github.yangziwen.zyftp.command.impl.PASV;
 import io.github.yangziwen.zyftp.command.impl.PORT;
 import io.github.yangziwen.zyftp.command.impl.PWD;
 import io.github.yangziwen.zyftp.command.impl.QUIT;
+import io.github.yangziwen.zyftp.command.impl.REST;
 import io.github.yangziwen.zyftp.command.impl.RETR;
 import io.github.yangziwen.zyftp.command.impl.RMD;
 import io.github.yangziwen.zyftp.command.impl.RNFR;
@@ -57,6 +58,7 @@ public interface CommandFactory {
 			.put("RNFR", new RNFR())
 			.put("RNTO", new RNTO())
 			.put("ABOR", new ABOR())
+			.put("REST", new REST())
 			.put("RETR", new RETR())
 			.put("STOR", new STOR())
 			.put("APPE", new APPE())

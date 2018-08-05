@@ -29,175 +29,175 @@ package io.github.yangziwen.zyftp.util;
  */
 public class RegularExpr {
 
-    private char[] pattern;
+	private char[] pattern;
 
-    /**
-     * Constructor.
-     *
-     * @param pattern
-     *            regular expression
-     */
-    public RegularExpr(String pattern) {
-        this.pattern = pattern.toCharArray();
-    }
+	/**
+	 * Constructor.
+	 *
+	 * @param pattern
+	 *			regular expression
+	 */
+	public RegularExpr(String pattern) {
+		this.pattern = pattern.toCharArray();
+	}
 
-    /**
-     * Compare string with a regular expression.
-     */
-    public boolean isMatch(String name) {
+	/**
+	 * Compare string with a regular expression.
+	 */
+	public boolean isMatch(String name) {
 
-        // common pattern - *
-        if ((pattern.length == 1) && (pattern[0] == '*')) {
-            return true;
-        }
+		// common pattern - *
+		if ((pattern.length == 1) && (pattern[0] == '*')) {
+			return true;
+		}
 
-        return isMatch(name.toCharArray(), 0, 0);
-    }
+		return isMatch(name.toCharArray(), 0, 0);
+	}
 
-    /**
-     * Is a match?
-     */
-    private boolean isMatch(char[] strName, int strIndex, int patternIndex) {
+	/**
+	 * Is a match?
+	 */
+	private boolean isMatch(char[] strName, int strIndex, int patternIndex) {
 
-        while (true) {
+		while (true) {
 
-            // no more pattern characters
-            // if no more strName characters - return true
-            if (patternIndex >= pattern.length) {
-                return strIndex == strName.length;
-            }
+			// no more pattern characters
+			// if no more strName characters - return true
+			if (patternIndex >= pattern.length) {
+				return strIndex == strName.length;
+			}
 
-            char pc = pattern[patternIndex++];
-            switch (pc) {
+			char pc = pattern[patternIndex++];
+			switch (pc) {
 
-            // Match a single character in the range
-            // If no more strName character - return false
-            case '[':
+			// Match a single character in the range
+			// If no more strName character - return false
+			case '[':
 
-                // no more string character - returns false
-                // example : pattern = ab[^c] and string = ab
-                if (strIndex >= strName.length) {
-                    return false;
-                }
+				// no more string character - returns false
+				// example : pattern = ab[^c] and string = ab
+				if (strIndex >= strName.length) {
+					return false;
+				}
 
-                char fc = strName[strIndex++];
-                char lastc = 0;
-                boolean bMatch = false;
-                boolean bNegete = false;
-                boolean bFirst = true;
+				char fc = strName[strIndex++];
+				char lastc = 0;
+				boolean bMatch = false;
+				boolean bNegete = false;
+				boolean bFirst = true;
 
-                while (true) {
+				while (true) {
 
-                    // single character match
-                    // no more pattern character - error condition.
-                    if (patternIndex >= pattern.length) {
-                        return false;
-                    }
-                    pc = pattern[patternIndex++];
+					// single character match
+					// no more pattern character - error condition.
+					if (patternIndex >= pattern.length) {
+						return false;
+					}
+					pc = pattern[patternIndex++];
 
-                    // end character - break out the loop
-                    // if end bracket is the first character - always a match.
-                    // example pattern - [], [^]
-                    if (pc == ']') {
-                        if (bFirst) {
-                            bMatch = true;
-                        }
-                        break;
-                    }
+					// end character - break out the loop
+					// if end bracket is the first character - always a match.
+					// example pattern - [], [^]
+					if (pc == ']') {
+						if (bFirst) {
+							bMatch = true;
+						}
+						break;
+					}
 
-                    // if already matched - just read the rest till we get ']'.
-                    if (bMatch) {
-                        continue;
-                    }
+					// if already matched - just read the rest till we get ']'.
+					if (bMatch) {
+						continue;
+					}
 
-                    // if the first character is the negete
-                    // character - inverse the matching condition
-                    if ((pc == '^') && bFirst) {
-                        bNegete = true;
-                        continue;
-                    }
-                    bFirst = false;
+					// if the first character is the negete
+					// character - inverse the matching condition
+					if ((pc == '^') && bFirst) {
+						bNegete = true;
+						continue;
+					}
+					bFirst = false;
 
-                    // '-' range check
-                    if (pc == '-') {
+					// '-' range check
+					if (pc == '-') {
 
-                        // pattern string is [a- error condition.
-                        if (patternIndex >= pattern.length) {
-                            return false;
-                        }
+						// pattern string is [a- error condition.
+						if (patternIndex >= pattern.length) {
+							return false;
+						}
 
-                        // read the high range character and compare.
-                        pc = pattern[patternIndex++];
-                        bMatch = (fc >= lastc) && (fc <= pc);
-                        lastc = pc;
-                    }
+						// read the high range character and compare.
+						pc = pattern[patternIndex++];
+						bMatch = (fc >= lastc) && (fc <= pc);
+						lastc = pc;
+					}
 
-                    // Single character match check. It might also be the
-                    // low range character.
-                    else {
-                        lastc = pc;
-                        bMatch = (pc == fc);
-                    }
-                }
+					// Single character match check. It might also be the
+					// low range character.
+					else {
+						lastc = pc;
+						bMatch = (pc == fc);
+					}
+				}
 
-                // no match - return false.
-                if (bNegete) {
-                    if (bMatch) {
-                        return false;
-                    }
-                } else {
-                    if (!bMatch) {
-                        return false;
-                    }
-                }
-                break;
+				// no match - return false.
+				if (bNegete) {
+					if (bMatch) {
+						return false;
+					}
+				} else {
+					if (!bMatch) {
+						return false;
+					}
+				}
+				break;
 
-            // * - skip zero or more characters
-            // No more pattern character - return true
-            // Increment strIndex till the rest of the pattern matches.
-            case '*':
+			// * - skip zero or more characters
+			// No more pattern character - return true
+			// Increment strIndex till the rest of the pattern matches.
+			case '*':
 
-                // no more string character remaining - returns true
-                if (patternIndex >= pattern.length) {
-                    return true;
-                }
+				// no more string character remaining - returns true
+				if (patternIndex >= pattern.length) {
+					return true;
+				}
 
-                // compare rest of the string
-                do {
-                    if (isMatch(strName, strIndex++, patternIndex)) {
-                        return true;
-                    }
-                } while (strIndex < strName.length);
+				// compare rest of the string
+				do {
+					if (isMatch(strName, strIndex++, patternIndex)) {
+						return true;
+					}
+				} while (strIndex < strName.length);
 
-                // Example pattern is (a*b) and the string is (adfdc).
-                return false;
+				// Example pattern is (a*b) and the string is (adfdc).
+				return false;
 
-                // ? - skip one character - increment strIndex.
-                // If no more strName character - return false.
-            case '?':
+				// ? - skip one character - increment strIndex.
+				// If no more strName character - return false.
+			case '?':
 
-                // already at the end - no more character - returns false
-                if (strIndex >= strName.length) {
-                    return false;
-                }
-                strIndex++;
-                break;
+				// already at the end - no more character - returns false
+				if (strIndex >= strName.length) {
+					return false;
+				}
+				strIndex++;
+				break;
 
-            // match character.
-            default:
+			// match character.
+			default:
 
-                // already at the end - no match
-                if (strIndex >= strName.length) {
-                    return false;
-                }
+				// already at the end - no match
+				if (strIndex >= strName.length) {
+					return false;
+				}
 
-                // the characters are not equal - no match
-                if (strName[strIndex++] != pc) {
-                    return false;
-                }
-                break;
-            }
-        }
-    }
+				// the characters are not equal - no match
+				if (strName[strIndex++] != pc) {
+					return false;
+				}
+				break;
+			}
+		}
+	}
 
 }

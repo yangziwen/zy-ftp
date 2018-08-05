@@ -43,7 +43,8 @@ public class MLSD implements Command {
 			ListArgument parsedArg = ListArgument.parse(request.getArgument());
 			FileFormatter formatter = new MLSTFileFormatter(session.getMlstOptionTypes());
 			String content = directoryLister.listFiles(parsedArg, session.getFileSystemView(), formatter);
-			Promise<FtpDataConnection> promise = session.writeAndFlushData(new FtpDataWriter() {
+			FtpDataConnection dataConnection = session.getLatestDataConnection();
+			Promise<Void> promise = dataConnection.writeAndFlushData(new FtpDataWriter() {
 				@Override
 				public ChannelFuture writeAndFlushData(Channel channel) {
 					byte[] bytes = content.getBytes(CharsetUtil.UTF_8);
@@ -52,9 +53,14 @@ public class MLSD implements Command {
 				}
 			});
 			promise.addListener(f1 -> {
+				if (!promise.isSuccess()) {
+					FtpServerHandler.sendResponse(Command.createResponse(FtpReply.REPLY_551, "MLSD", session), session.getContext());
+					dataConnection.close();
+					return;
+				}
 				FtpServerHandler.sendResponse(Command.createResponse(FtpReply.REPLY_226, "MLSD", session), session.getContext())
 					.addListener(f2 -> {
-						promise.get().close();
+						dataConnection.close();
 					});
 			});
 		} catch (IOException e) {

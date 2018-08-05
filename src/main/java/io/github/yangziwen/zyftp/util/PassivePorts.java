@@ -23,196 +23,196 @@ public class PassivePorts {
 
 	private static final int MAX_PORT = 65535;
 
-    private static final Integer MAX_PORT_INTEGER = Integer.valueOf(MAX_PORT);
+	private static final Integer MAX_PORT_INTEGER = Integer.valueOf(MAX_PORT);
 
-    private List<Integer> freeList;
+	private List<Integer> freeList;
 
-    private Set<Integer> usedList;
+	private Set<Integer> usedList;
 
-    private Random r = new Random();
+	private Random r = new Random();
 
-    private String passivePortsString;
+	private String passivePortsString;
 
-    private DefaultEventExecutor executor = new DefaultEventExecutor();
+	private DefaultEventExecutor executor = new DefaultEventExecutor();
 
-    public PassivePorts(Set<Integer> passivePorts) {
-        if (passivePorts == null) {
-            throw new NullPointerException("passivePorts can not be null");
-        } else if(passivePorts.isEmpty()) {
-        	passivePorts = new HashSet<Integer>();
-        	passivePorts.add(0);
-        }
-        this.freeList = new ArrayList<Integer>(passivePorts);
-        this.usedList = new HashSet<Integer>(passivePorts.size());
-    }
+	public PassivePorts(Set<Integer> passivePorts) {
+		if (passivePorts == null) {
+			throw new NullPointerException("passivePorts can not be null");
+		} else if(passivePorts.isEmpty()) {
+			passivePorts = new HashSet<Integer>();
+			passivePorts.add(0);
+		}
+		this.freeList = new ArrayList<Integer>(passivePorts);
+		this.usedList = new HashSet<Integer>(passivePorts.size());
+	}
 
-    public PassivePorts(final String passivePorts) {
-        this(parse(passivePorts));
-        this.passivePortsString = passivePorts;
-    }
+	public PassivePorts(final String passivePorts) {
+		this(parse(passivePorts));
+		this.passivePortsString = passivePorts;
+	}
 
-    public String getPassivePortsString() {
-    	return passivePortsString;
-    }
+	public String getPassivePortsString() {
+		return passivePortsString;
+	}
 
-    public Promise<Integer> borrowPort() {
-    	Promise<Integer> promise = executor.newPromise();
-        if (executor.inEventLoop()) {
-            promise.setSuccess(doBorrowPort());
-        } else {
-            executor.execute(() -> promise.setSuccess(doBorrowPort()));
-        }
-    	return promise;
-    }
+	public Promise<Integer> borrowPort() {
+		Promise<Integer> promise = executor.newPromise();
+		if (executor.inEventLoop()) {
+			promise.setSuccess(doBorrowPort());
+		} else {
+			executor.execute(() -> promise.setSuccess(doBorrowPort()));
+		}
+		return promise;
+	}
 
-    private Integer doBorrowPort() {
-    	List<Integer> freeCopy = new ArrayList<Integer>(freeList);
-    	while (freeCopy.size() > 0) {
-    		int index = r.nextInt(freeCopy.size());
-    		Integer port = freeCopy.get(index);
-    		if (checkPortUnbound(port)) {
-    			freeList.remove(index);
-    			usedList.add(port);
-    			return port;
-    		} else {
-    			freeCopy.remove(index);
-    		}
-    	}
-    	return -1;
-    }
+	private Integer doBorrowPort() {
+		List<Integer> freeCopy = new ArrayList<Integer>(freeList);
+		while (freeCopy.size() > 0) {
+			int index = r.nextInt(freeCopy.size());
+			Integer port = freeCopy.get(index);
+			if (checkPortUnbound(port)) {
+				freeList.remove(index);
+				usedList.add(port);
+				return port;
+			} else {
+				freeCopy.remove(index);
+			}
+		}
+		return -1;
+	}
 
-    public Promise<Void> returnPort(Integer port) {
-    	Promise<Void> promise = executor.newPromise();
-    	if (executor.inEventLoop()) {
-    		doReturnPort(port);
-    		promise.setSuccess(null);
-    	} else {
-    		executor.execute(() -> {
-    			doReturnPort(port);
-    			promise.setSuccess(null);
-    		});
-    	}
-    	return promise;
-    }
+	public Promise<Void> returnPort(Integer port) {
+		Promise<Void> promise = executor.newPromise();
+		if (executor.inEventLoop()) {
+			doReturnPort(port);
+			promise.setSuccess(null);
+		} else {
+			executor.execute(() -> {
+				doReturnPort(port);
+				promise.setSuccess(null);
+			});
+		}
+		return promise;
+	}
 
-    private void doReturnPort(Integer port) {
-    	usedList.remove(port);
-    	freeList.add(port);
-    }
+	private void doReturnPort(Integer port) {
+		usedList.remove(port);
+		freeList.add(port);
+	}
 
-    /**
-     * Parse a string containing passive ports
-     *
-     * @param portsString
-     *            A string of passive ports, can contain a single port (as an
-     *            integer), multiple ports seperated by commas (e.g.
-     *            123,124,125) or ranges of ports, including open ended ranges
-     *            (e.g. 123-125, 30000-, -1023). Combinations for single ports
-     *            and ranges is also supported.
-     * @return A list of Integer objects, based on the parsed string
-     * @throws IllegalArgumentException
-     *             If any of of the ports in the string is invalid (e.g. not an
-     *             integer or too large for a port number)
-     */
-    private static Set<Integer> parse(final String portsString) {
-        Set<Integer> passivePortsList = new HashSet<Integer>();
+	/**
+	 * Parse a string containing passive ports
+	 *
+	 * @param portsString
+	 *			A string of passive ports, can contain a single port (as an
+	 *			integer), multiple ports seperated by commas (e.g.
+	 *			123,124,125) or ranges of ports, including open ended ranges
+	 *			(e.g. 123-125, 30000-, -1023). Combinations for single ports
+	 *			and ranges is also supported.
+	 * @return A list of Integer objects, based on the parsed string
+	 * @throws IllegalArgumentException
+	 *			 If any of of the ports in the string is invalid (e.g. not an
+	 *			 integer or too large for a port number)
+	 */
+	private static Set<Integer> parse(final String portsString) {
+		Set<Integer> passivePortsList = new HashSet<Integer>();
 
-        boolean inRange = false;
-        Integer lastPort = Integer.valueOf(1);
-        StringTokenizer st = new StringTokenizer(portsString, ",;-", true);
-        while (st.hasMoreTokens()) {
-            String token = st.nextToken().trim();
+		boolean inRange = false;
+		Integer lastPort = Integer.valueOf(1);
+		StringTokenizer st = new StringTokenizer(portsString, ",;-", true);
+		while (st.hasMoreTokens()) {
+			String token = st.nextToken().trim();
 
-            if (",".equals(token) || ";".equals(token)) {
-                if (inRange) {
-                    fillRange(passivePortsList, lastPort, MAX_PORT_INTEGER);
-                }
+			if (",".equals(token) || ";".equals(token)) {
+				if (inRange) {
+					fillRange(passivePortsList, lastPort, MAX_PORT_INTEGER);
+				}
 
-                // reset state
-                lastPort = Integer.valueOf(1);
-                inRange = false;
-            } else if ("-".equals(token)) {
-                inRange = true;
-            } else if (token.length() == 0) {
-                // ignore whitespace
-            } else {
-                Integer port = Integer.valueOf(token);
+				// reset state
+				lastPort = Integer.valueOf(1);
+				inRange = false;
+			} else if ("-".equals(token)) {
+				inRange = true;
+			} else if (token.length() == 0) {
+				// ignore whitespace
+			} else {
+				Integer port = Integer.valueOf(token);
 
-                verifyPort(port);
+				verifyPort(port);
 
-                if (inRange) {
-                    // add all numbers from last int
-                    fillRange(passivePortsList, lastPort, port);
+				if (inRange) {
+					// add all numbers from last int
+					fillRange(passivePortsList, lastPort, port);
 
-                    inRange = false;
-                }
+					inRange = false;
+				}
 
-                addPort(passivePortsList, port);
+				addPort(passivePortsList, port);
 
-                lastPort = port;
-            }
-        }
+				lastPort = port;
+			}
+		}
 
-        if (inRange) {
-            fillRange(passivePortsList, lastPort, MAX_PORT_INTEGER);
-        }
+		if (inRange) {
+			fillRange(passivePortsList, lastPort, MAX_PORT_INTEGER);
+		}
 
-        return passivePortsList;
-    }
+		return passivePortsList;
+	}
 
-    /**
-     * Fill a range of ports
-     */
-    private static void fillRange(final Set<Integer> passivePortsList, final Integer beginPort, final Integer endPort) {
-        for (int i = beginPort; i <= endPort; i++) {
-            addPort(passivePortsList, Integer.valueOf(i));
-        }
-    }
+	/**
+	 * Fill a range of ports
+	 */
+	private static void fillRange(final Set<Integer> passivePortsList, final Integer beginPort, final Integer endPort) {
+		for (int i = beginPort; i <= endPort; i++) {
+			addPort(passivePortsList, Integer.valueOf(i));
+		}
+	}
 
-    /**
-     * Add a single port if not already in list
-     */
-    private static void addPort(final Set<Integer> passivePortsList, final Integer port) {
-        passivePortsList.add(port);
-    }
+	/**
+	 * Add a single port if not already in list
+	 */
+	private static void addPort(final Set<Integer> passivePortsList, final Integer port) {
+		passivePortsList.add(port);
+	}
 
-    /**
-     * Verify that the port is within the range of allowed ports
-     */
-    private static void verifyPort(final int port) {
-        if (port < 0) {
-            throw new IllegalArgumentException("Port can not be negative: " + port);
-        } else if (port > MAX_PORT) {
-            throw new IllegalArgumentException("Port too large: " + port);
-        }
-    }
+	/**
+	 * Verify that the port is within the range of allowed ports
+	 */
+	private static void verifyPort(final int port) {
+		if (port < 0) {
+			throw new IllegalArgumentException("Port can not be negative: " + port);
+		} else if (port > MAX_PORT) {
+			throw new IllegalArgumentException("Port too large: " + port);
+		}
+	}
 
-    public Future<?> destroy() {
-    	return executor.shutdownGracefully();
-    }
+	public Future<?> destroy() {
+		return executor.shutdownGracefully();
+	}
 
-    /**
-     * Checks that the port of not bound by another application
-     */
-    private boolean checkPortUnbound(int port) {
-        ServerSocket socket = null;
-        try {
-            socket = new ServerSocket(port);
-            socket.setReuseAddress(true);
-            return true;
-        } catch (IOException e) {
-            // port probably in use, check next
-            return false;
-        } finally {
-            if (socket != null) {
-                try {
-                    socket.close();
-                } catch (IOException e) {
-                    // could not close, check next
-                    return false;
-                }
-            }
-        }
-    }
+	/**
+	 * Checks that the port of not bound by another application
+	 */
+	private boolean checkPortUnbound(int port) {
+		ServerSocket socket = null;
+		try {
+			socket = new ServerSocket(port);
+			socket.setReuseAddress(true);
+			return true;
+		} catch (IOException e) {
+			// port probably in use, check next
+			return false;
+		} finally {
+			if (socket != null) {
+				try {
+					socket.close();
+				} catch (IOException e) {
+					// could not close, check next
+					return false;
+				}
+			}
+		}
+	}
 
 }

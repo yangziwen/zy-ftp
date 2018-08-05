@@ -1,5 +1,7 @@
 package io.github.yangziwen.zyftp.command.impl;
 
+import java.io.IOException;
+
 import io.github.yangziwen.zyftp.command.Command;
 import io.github.yangziwen.zyftp.common.FtpReply;
 import io.github.yangziwen.zyftp.filesystem.FileView;
@@ -11,8 +13,7 @@ import io.github.yangziwen.zyftp.server.FtpServerHandler;
 import io.github.yangziwen.zyftp.server.FtpSession;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
-import io.netty.channel.DefaultFileRegion;
-import io.netty.channel.FileRegion;
+import io.netty.handler.stream.ChunkedFile;
 import io.netty.util.concurrent.Promise;
 
 public class RETR implements Command {
@@ -54,19 +55,24 @@ public class RETR implements Command {
 		}
 	}
 
-	private void doSendFileContent(FtpSession session, FtpRequest request, FileView file, long offset) {
-		FileRegion region = new DefaultFileRegion(file.getRealFile(), offset, file.getSize());
-		Promise<FtpDataConnection> promise = session.writeAndFlushData(new FtpDataWriter() {
+	private void doSendFileContent(FtpSession session, FtpRequest request, FileView file, long offset) throws IOException {
+		// Traffic shape handler cannot control the write rate of DefaultFileRegion, so use ChunkedFile instead
+		ChunkedFile chunkedFile = new ChunkedFile(file.getRealFile());
+		FtpDataConnection dataConnection = session.getLatestDataConnection();
+		Promise<Void> promise = dataConnection.writeAndFlushData(new FtpDataWriter() {
 			@Override
 			public ChannelFuture writeAndFlushData(Channel ctx) {
-				return ctx.writeAndFlush(region);
+				return ctx.writeAndFlush(chunkedFile);
 			}
 		});
 		promise.addListener(f -> {
+			if (!promise.isSuccess()) {
+				FtpServerHandler.sendResponse(Command.createResponse(FtpReply.REPLY_551, "RETR", session), session.getContext());
+				dataConnection.close();
+				return;
+			}
 			FtpServerHandler.sendResponse(Command.createResponse(FtpReply.REPLY_226, "RETR", session), session.getContext())
-				.addListener(f2 -> {
-					promise.get().close();
-				});
+				.addListener(f2 ->  dataConnection.close());
 		});
 	}
 

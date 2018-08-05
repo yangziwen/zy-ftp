@@ -215,18 +215,6 @@ public class FtpSession {
 		return false;
 	}
 
-	public Promise<FtpDataConnection> writeAndFlushData(FtpDataWriter writer) {
-		if (dataConnectionType == DataConnectionType.PASV) {
-			return latestPassiveDataServer.get().writeAndFlushData(writer);
-		}
-		if (dataConnectionType == DataConnectionType.PORT) {
-			return latestPortDataClient.get().writeAndFlushData(writer);
-		}
-		Promise<FtpDataConnection> promise = this.<FtpDataConnection>newPromise();
-		Exception error = new IllegalStateException(String.format("the data connection of session[%s] is not available", this));
-		return promise.setFailure(error);
-	}
-
 	public void preLogin(String username) {
 		this.user = new User(username);
 		this.loggedIn = false;
