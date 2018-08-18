@@ -1,5 +1,7 @@
 package io.github.yangziwen.zyftp.server;
 
+import java.io.File;
+
 import io.github.yangziwen.zyftp.config.FtpServerConfig;
 import io.github.yangziwen.zyftp.filesystem.FileSystemManager;
 import io.github.yangziwen.zyftp.message.MessageResource;
@@ -27,8 +29,8 @@ public class FtpServerContext {
 
 	private PassivePorts passivePorts;
 
-	public FtpServerContext() {
-		this.serverConfig = new FtpServerConfig();
+	public FtpServerContext(File configFile) {
+		this.serverConfig = FtpServerConfig.loadConfig(configFile);
 		this.messageResource = new MessageResource();
 		this.passivePorts = new PassivePorts(serverConfig.getPassivePortsString());
 	}

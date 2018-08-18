@@ -13,7 +13,6 @@ import io.github.yangziwen.zyftp.command.impl.state.OtherState;
 import io.github.yangziwen.zyftp.common.DataConnectionType;
 import io.github.yangziwen.zyftp.common.DataType;
 import io.github.yangziwen.zyftp.config.FtpServerConfig;
-import io.github.yangziwen.zyftp.config.FtpServerConfig.ConnectionConfig;
 import io.github.yangziwen.zyftp.filesystem.FileSystemView;
 import io.github.yangziwen.zyftp.user.User;
 import io.netty.channel.Channel;
@@ -121,10 +120,6 @@ public class FtpSession {
 
 	public FtpServerConfig getServerConfig() {
 		return serverContext.getServerConfig();
-	}
-
-	public ConnectionConfig getConnectionConfig() {
-		return getServerConfig().getConnectionConfig();
 	}
 
 	public FileSystemView getFileSystemView() {

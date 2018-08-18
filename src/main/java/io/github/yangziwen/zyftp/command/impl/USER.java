@@ -31,14 +31,14 @@ public class USER implements Command {
 
 		boolean isAnonymous = FtpSession.isAnonymous(username);
 
-		if (isAnonymous && !session.getConnectionConfig().isAnonymousEnabled()) {
+		if (isAnonymous && !session.getServerConfig().isAnonymousEnabled()) {
 			return createFailedResponse(FtpReply.REPLY_530, "USER.anonymous", request, session);
 		}
 
-		boolean tooManyLoggedInUsers = FtpSession.TOTAL_LOGIN_USER_COUNTER.get() >= session.getConnectionConfig().getMaxLogins();
+		boolean tooManyLoggedInUsers = FtpSession.TOTAL_LOGIN_USER_COUNTER.get() >= session.getServerConfig().getMaxLogins();
 
 		if (isAnonymous) {
-			tooManyLoggedInUsers |= FtpSession.ANONYMOUS_LOGIN_USER_COUNTER.get() >= session.getConnectionConfig().getMaxAnonymousLogins();
+			tooManyLoggedInUsers |= FtpSession.ANONYMOUS_LOGIN_USER_COUNTER.get() >= session.getServerConfig().getMaxAnonymousLogins();
 		}
 
 		if (tooManyLoggedInUsers) {

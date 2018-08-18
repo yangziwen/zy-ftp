@@ -26,10 +26,10 @@ public class PASS implements Command {
 
 		boolean isAnonymous = FtpSession.isAnonymous(user);
 
-		boolean tooManyLoggedInUsers = FtpSession.TOTAL_LOGIN_USER_COUNTER.get() >= session.getConnectionConfig().getMaxLogins();
+		boolean tooManyLoggedInUsers = FtpSession.TOTAL_LOGIN_USER_COUNTER.get() >= session.getServerConfig().getMaxLogins();
 
 		if (isAnonymous) {
-			tooManyLoggedInUsers |= FtpSession.ANONYMOUS_LOGIN_USER_COUNTER.get() >= session.getConnectionConfig().getMaxAnonymousLogins();
+			tooManyLoggedInUsers |= FtpSession.ANONYMOUS_LOGIN_USER_COUNTER.get() >= session.getServerConfig().getMaxAnonymousLogins();
 		}
 
 		if (tooManyLoggedInUsers) {
