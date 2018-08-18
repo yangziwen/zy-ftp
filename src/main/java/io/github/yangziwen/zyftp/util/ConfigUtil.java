@@ -23,6 +23,10 @@ public class ConfigUtil {
 		return hasPath(config, path) ? config.getString(path) : defaultValue;
 	}
 
+	public static String getString(Config config, String path) {
+		return getStringOrDefault(config, path, null);
+	}
+
 	private static boolean hasPath(Config config, String path) {
 		return config != null && config.hasPath(path);
 	}

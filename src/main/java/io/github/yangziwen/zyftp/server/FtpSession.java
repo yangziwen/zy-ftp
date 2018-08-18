@@ -211,7 +211,7 @@ public class FtpSession {
 	}
 
 	public void preLogin(String username) {
-		this.user = new User(username);
+		this.user = new User(username, getServerConfig());
 		this.loggedIn = false;
 	}
 

@@ -42,7 +42,7 @@ public class PASS implements Command {
 
 		// TODO authenticate and get the valid user instance
 
-		User authenticatedUser = new User(username, password);
+		User authenticatedUser = new User(username, password, session.getServerConfig());
 
 		session.login(authenticatedUser);
 

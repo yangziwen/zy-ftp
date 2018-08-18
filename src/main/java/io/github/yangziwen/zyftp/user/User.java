@@ -19,19 +19,22 @@ public class User {
 
 	private String homeDirectory;
 
-	private long uploadBytesPerSecond = FtpServerConfig.DEFAULT_UPLOAD_BYTES_PER_SECOND;
+	private long uploadBytesPerSecond;
 
-	private long downloadBytesPerSecond = FtpServerConfig.DEFAULT_DOWNLOAD_BYTES_PER_SECOND;
+	private long downloadBytesPerSecond;
 
 	public User() {}
 
-	public User(String username) {
+	public User(String username, FtpServerConfig serverConfig) {
 		this.username = username;
+		this.uploadBytesPerSecond = serverConfig.getDefaultUploadBytesPerSecond();
+		this.downloadBytesPerSecond = serverConfig.getDefaultDownloadBytesPerSecond();
 	}
 
-	public User(String username, String password) {
-		this.username = username;
+	public User(String username, String password, FtpServerConfig serverConfig) {
+		this(username, serverConfig);
 		this.password = password;
+
 	}
 
 	public String getHomeDirectory() {
