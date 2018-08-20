@@ -20,6 +20,24 @@ import lombok.Data;
 @Data
 public class FtpServerConfig {
 
+	private static final int DEFAULT_MAX_LOGINS = 100;
+
+	private static final int DEFAULT_MAX_IDLE_SECONDS = 120;
+
+	private static final int DEFAULT_DATA_CONNECTION_MAX_IDLE_SECONDS = 30;
+
+	private static final String DEFAULT_LOCAL_IP = "0.0.0.0";
+
+	private static final int DEFAULT_LOCAL_PORT = 21;
+
+	private static final String DEFAULT_PASSIVE_ADDRESS = "127.0.0.1";
+
+	private static final String DEFAULT_PASSIVE_PORTS = "40000-50000";
+
+	private static final long DEFAULT_UPLOAD_BYTES_PER_SECOND = 500 * 1024L;
+
+	private static final long DEFAULT_DOWNLOAD_BYTES_PER_SECOND = 500 * 1024L;
+
 	private SocketAddress localAddress;
 
 	private int maxLogins;
@@ -48,22 +66,25 @@ public class FtpServerConfig {
 		Config globalConfig = ConfigFactory.parseFile(configFile);
 
 		Config serverConfig = getConfig(globalConfig, "server");
-		config.setMaxLogins(getIntOrDefault(serverConfig, "max-logins", 100));
-		config.setMaxIdleSeconds(getIntOrDefault(serverConfig, "max-idle-seconds", 120));
-		config.setDataConnectionMaxIdleSeconds(getIntOrDefault(serverConfig, "data-connection-max-idle-seconds", 30));
+		config.setMaxLogins(getIntOrDefault(serverConfig, "max-logins", DEFAULT_MAX_LOGINS));
+		config.setMaxIdleSeconds(getIntOrDefault(serverConfig, "max-idle-seconds", DEFAULT_MAX_IDLE_SECONDS));
+		config.setDataConnectionMaxIdleSeconds(getIntOrDefault(
+				serverConfig, "data-connection-max-idle-seconds", DEFAULT_DATA_CONNECTION_MAX_IDLE_SECONDS));
 
 		Config localConfig = getConfig(serverConfig, "local");
 		config.setLocalAddress(new InetSocketAddress(
-				getStringOrDefault(localConfig, "ip", "0.0.0.0"),
-				getIntOrDefault(localConfig, "port", 21)));
+				getStringOrDefault(localConfig, "ip", DEFAULT_LOCAL_IP),
+				getIntOrDefault(localConfig, "port", DEFAULT_LOCAL_PORT)));
 
 		Config passiveConfig = getConfig(serverConfig, "passive");
-		config.setPassiveAddress(getStringOrDefault(passiveConfig, "address", "127.0.0.1"));
-		config.setPassivePortsString(getStringOrDefault(passiveConfig, "ports", "40000-50000"));
+		config.setPassiveAddress(getStringOrDefault(passiveConfig, "address", DEFAULT_PASSIVE_ADDRESS));
+		config.setPassivePortsString(getStringOrDefault(passiveConfig, "ports", DEFAULT_PASSIVE_PORTS));
 
 		Config connectionConfig = getConfig(serverConfig, "connection");
-		config.setDefaultUploadBytesPerSecond(parseBytes(getString(connectionConfig, "default-upload-bytes-per-second"), 500 * 1024L));
-		config.setDefaultDownloadBytesPerSecond(parseBytes(getString(connectionConfig, "default-download-bytes-per-second"), 500 * 1024L));
+		config.setDefaultUploadBytesPerSecond(parseBytes(
+				getString(connectionConfig, "default-upload-bytes-per-second"), DEFAULT_UPLOAD_BYTES_PER_SECOND));
+		config.setDefaultDownloadBytesPerSecond(parseBytes(
+				getString(connectionConfig, "default-download-bytes-per-second"), DEFAULT_DOWNLOAD_BYTES_PER_SECOND));
 
 		for (FtpUserConfig userConfig : FtpUserConfig.loadConfig(globalConfig, config)) {
 			config.userConfigs.put(userConfig.getUsername(), userConfig);

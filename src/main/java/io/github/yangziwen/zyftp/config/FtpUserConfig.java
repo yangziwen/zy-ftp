@@ -24,6 +24,8 @@ import lombok.Getter;
 @Data
 public class FtpUserConfig {
 
+	private static final int DEFAULT_MAX_LOGINS = 20;
+
 	private String username;
 
 	private String encryptedPassword;
@@ -55,7 +57,7 @@ public class FtpUserConfig {
 			String homeDirectoryPath = getStringOrDefault(userConfig, "home-directory", FileView.DEFAULT_HOME_DIRECTORY);
 			config.setHomeDirectory(new File(homeDirectoryPath).getAbsolutePath());
 			config.setEnabled(getBooleanOrDefault(userConfig, "enabled", false));
-			config.setMaxLogins(getIntOrDefault(userConfig, "max-logins", 50));
+			config.setMaxLogins(getIntOrDefault(userConfig, "max-logins", DEFAULT_MAX_LOGINS));
 
 			String uploadBytesPerSecondValue = getStringOrDefault(userConfig, "upload-bytes-per-second", "");
 			config.setUploadBytesPerSecond(parseBytes(uploadBytesPerSecondValue, serverConfig.getDefaultDownloadBytesPerSecond()));
