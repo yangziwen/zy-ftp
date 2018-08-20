@@ -9,12 +9,14 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.util.concurrent.Promise;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * The ftp server handler
  *
  * @author yangziwen
  */
+@Slf4j
 public class FtpServerHandler extends SimpleChannelInboundHandler<FtpRequest> {
 
 	private FtpServerContext serverContext;
@@ -62,12 +64,25 @@ public class FtpServerHandler extends SimpleChannelInboundHandler<FtpRequest> {
 	}
 
 	@Override
+	public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+		FtpSession session = FtpSession.getOrCreateSession(ctx, serverContext);
+		log.info("session[{}] lost connection", session);
+		if (session.isLoggedIn()) {
+			session.logout();
+		}
+		session.getChannel().close().addListener(closeFuture -> {
+			session.destroy();
+		});
+	}
+
+	@Override
 	public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
 		if (FtpSession.isAllIdleStateEvent(evt)) {
 			FtpSession session = FtpSession.getOrCreateSession(ctx, serverContext);
 			if (session.hasRunningDataConnection()) {
 				return;
 			}
+			log.info("idle connection of session[{}] is timeout", session);
 			if (session.isLoggedIn()) {
 				session.logout();
 			}
@@ -76,7 +91,6 @@ public class FtpServerHandler extends SimpleChannelInboundHandler<FtpRequest> {
 			});
 		}
 	}
-
 
 	public static ChannelFuture sendResponse(FtpResponse response, ChannelHandlerContext ctx) {
 		return ctx.writeAndFlush(response).addListener(future -> {

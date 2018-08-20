@@ -24,16 +24,12 @@ public class PASS implements Command {
 			return Command.createResponse(FtpReply.REPLY_202, "PASS", request, session);
 		}
 
-		boolean isAnonymous = FtpSession.isAnonymous(user);
-
-		boolean tooManyLoggedInUsers = FtpSession.TOTAL_LOGIN_USER_COUNTER.get() >= session.getServerConfig().getMaxLogins();
-
-		if (isAnonymous) {
-			tooManyLoggedInUsers |= FtpSession.ANONYMOUS_LOGIN_USER_COUNTER.get() >= user.getUserConfig().getMaxLogins();
+		if (FtpSession.getLoggedInUserTotalCount() >= session.getServerConfig().getMaxLogins()) {
+			return createFailedResponse(FtpReply.REPLY_421, "USER.login", request, session);
 		}
 
-		if (tooManyLoggedInUsers) {
-			return createFailedResponse(FtpReply.REPLY_421, "USER.anonymous", request, session);
+		if (FtpSession.getLoggedInUserCount(user.getUsername()) >= user.getUserConfig().getMaxLogins()) {
+			return createFailedResponse(FtpReply.REPLY_421, "USER.login", request, session);
 		}
 
 		user.setPassword(request.getArgument());

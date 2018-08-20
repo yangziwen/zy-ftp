@@ -58,4 +58,8 @@ public class User {
 		return userConfig != null && userConfig.isWriteAllowed(path);
 	}
 
+	public static boolean isAnonymous(String username) {
+		return ANONYMOUS.equals(username);
+	}
+
 }

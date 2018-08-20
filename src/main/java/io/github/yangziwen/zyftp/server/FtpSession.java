@@ -1,12 +1,16 @@
 package io.github.yangziwen.zyftp.server;
 
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentHashMap.KeySetView;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import org.apache.commons.lang3.StringUtils;
 
 import io.github.yangziwen.zyftp.command.impl.state.CommandState;
 import io.github.yangziwen.zyftp.command.impl.state.OtherState;
@@ -24,19 +28,19 @@ import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.util.AttributeKey;
 import io.netty.util.concurrent.Promise;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * The ftp session
  *
  * @author yangziwen
  */
+@Slf4j
 public class FtpSession {
 
 	private static final AttributeKey<FtpSession> SESSION_KEY = AttributeKey.valueOf("ftp.session");
 
-	public static final AtomicInteger ANONYMOUS_LOGIN_USER_COUNTER = new AtomicInteger();
-
-	public static final AtomicInteger TOTAL_LOGIN_USER_COUNTER = new AtomicInteger();
+	private static final ConcurrentMap<String, Set<FtpSession>> LOGGED_IN_USER_SESSION_MAP = new ConcurrentHashMap<>();
 
 	private ChannelHandlerContext context;
 
@@ -238,21 +242,33 @@ public class FtpSession {
 	public void login(User user) {
 		this.user = user;
 		this.fileSystemView = new FileSystemView(user);
-		if (isAnonymous(user)) {
-			ANONYMOUS_LOGIN_USER_COUNTER.incrementAndGet();
-		}
-		TOTAL_LOGIN_USER_COUNTER.incrementAndGet();
 		this.loggedIn = true;
+		ensureSessionSet(user.getUsername(), LOGGED_IN_USER_SESSION_MAP).add(this);
 	}
 
 	public void logout() {
-		if (isAnonymous(this.user)) {
-			ANONYMOUS_LOGIN_USER_COUNTER.decrementAndGet();
-		}
-		TOTAL_LOGIN_USER_COUNTER.decrementAndGet();
+		ensureSessionSet(user.getUsername(), LOGGED_IN_USER_SESSION_MAP).remove(this);
 		this.user = null;
 		this.fileSystemView = null;
 		this.loggedIn = false;
+	}
+
+	public static int getLoggedInUserCount(String username) {
+		if (StringUtils.isBlank(username) || !LOGGED_IN_USER_SESSION_MAP.containsKey(username)) {
+			return 0;
+		}
+		return LOGGED_IN_USER_SESSION_MAP.get(username).size();
+	}
+
+	public static int getLoggedInUserTotalCount() {
+		return LOGGED_IN_USER_SESSION_MAP.values().stream().collect(Collectors.summingInt(Set::size));
+	}
+
+	private static Set<FtpSession> ensureSessionSet(String username, ConcurrentMap<String, Set<FtpSession>> sessionMap) {
+		if (!sessionMap.containsKey(username)) {
+			sessionMap.putIfAbsent(username, ConcurrentHashMap.newKeySet());
+		}
+		return sessionMap.get(username);
 	}
 
 	public Promise<Void> closeDataConnections() {
@@ -276,20 +292,20 @@ public class FtpSession {
 			logout();
 		}
 		closeDataConnections();
+		log.info("session[{}] is destroyed", this);
 	}
 
 	public static boolean isAnonymous(User user) {
 		return user != null && user.isAnonymous();
 	}
 
-	public static boolean isAnonymous(String username) {
-		return User.ANONYMOUS.equals(username);
-	}
-
 	public static FtpSession getOrCreateSession(ChannelHandlerContext ctx, FtpServerContext serverContext) {
 		Channel channel = ctx.channel();
 		if (!channel.hasAttr(SESSION_KEY)) {
-			channel.attr(SESSION_KEY).setIfAbsent(new FtpSession(ctx, serverContext));
+			FtpSession newSession = new FtpSession(ctx, serverContext);
+			if (null == channel.attr(SESSION_KEY).setIfAbsent(newSession)) {
+				log.info("session[{}] is created", newSession);
+			}
 		}
 		return channel.attr(SESSION_KEY).get();
 	}

@@ -31,33 +31,24 @@ public class USER implements Command {
 		}
 
 		FtpUserConfig userConfig = session.getUserConfig(username);
-		if (userConfig == null) {
+		if (userConfig == null || !userConfig.isEnabled()) {
+			log.warn("user[{}] does not exist", username);
 			return createFailedResponse(FtpReply.REPLY_530, "USER.invalid", request, session);
 		}
 
-		boolean isAnonymous = FtpSession.isAnonymous(username);
-
-		if (isAnonymous && !userConfig.isEnabled()) {
-			return createFailedResponse(FtpReply.REPLY_530, "USER.anonymous", request, session);
+		if (FtpSession.getLoggedInUserTotalCount() >= session.getServerConfig().getMaxLogins()) {
+			log.warn("too many logins of users");
+			return createFailedResponse(FtpReply.REPLY_421, "USER.login", request, session);
 		}
 
-		boolean tooManyLoggedInUsers = FtpSession.TOTAL_LOGIN_USER_COUNTER.get() >= session.getServerConfig().getMaxLogins();
-
-		if (isAnonymous) {
-			tooManyLoggedInUsers |= FtpSession.ANONYMOUS_LOGIN_USER_COUNTER.get() >= session.getUserConfig(username).getMaxLogins();
+		if (FtpSession.getLoggedInUserCount(username) >= userConfig.getMaxLogins()) {
+			log.warn("too many logins of user[{}]", username);
+			return createFailedResponse(FtpReply.REPLY_421, "USER.login", request, session);
 		}
-
-		if (tooManyLoggedInUsers) {
-			return createFailedResponse(FtpReply.REPLY_421, "USER.anonymous", request, session);
-		}
-
-		// TODO user login limit check
 
 		session.preLogin(username);
 
-		String subId = isAnonymous ? "USER.anonymous" : "USER";
-
-		return Command.createResponse(FtpReply.REPLY_331, subId, request, session);
+		return Command.createResponse(FtpReply.REPLY_331, "USER", request, session);
 	}
 
 	private FtpResponse createFailedResponse(FtpReply reply, String subId, FtpRequest request, FtpSession session) {
