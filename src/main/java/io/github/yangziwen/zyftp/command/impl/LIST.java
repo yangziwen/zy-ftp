@@ -48,12 +48,16 @@ public class LIST implements Command {
 				@Override
 				public ChannelFuture writeAndFlushData(Channel channel) {
 					byte[] bytes = content.getBytes(CharsetUtil.UTF_8);
+					if (bytes.length == 0) {
+						bytes = " ".getBytes(CharsetUtil.UTF_8);
+					}
 					ByteBuf buffer = channel.alloc().buffer(bytes.length).writeBytes(bytes);
 					return channel.writeAndFlush(buffer);
 				}
 			});
 			promise.addListener(f1 -> {
 				if (!promise.isSuccess()) {
+					log.error("failed to send list data", promise.cause());
 					FtpServerHandler.sendResponse(Command.createResponse(FtpReply.REPLY_551, "LIST", session), session.getContext());
 					dataConnection.close();
 					return;

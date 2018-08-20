@@ -1,5 +1,6 @@
 package io.github.yangziwen.zyftp.server;
 
+import java.security.cert.CertificateException;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -9,6 +10,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import javax.net.ssl.SSLException;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -24,6 +27,10 @@ import io.github.yangziwen.zyftp.user.User;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPromise;
+import io.netty.handler.ssl.SslContext;
+import io.netty.handler.ssl.SslContextBuilder;
+import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
+import io.netty.handler.ssl.util.SelfSignedCertificate;
 import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.util.AttributeKey;
@@ -42,6 +49,8 @@ public class FtpSession {
 
 	private static final ConcurrentMap<String, Set<FtpSession>> LOGGED_IN_USER_SESSION_MAP = new ConcurrentHashMap<>();
 
+	private static AtomicReference<SelfSignedCertificate> sslCertificateRef = new AtomicReference<SelfSignedCertificate>();
+
 	private ChannelHandlerContext context;
 
 	private FtpServerContext serverContext;
@@ -57,6 +66,8 @@ public class FtpSession {
 	private DataType dataType = DataType.BINARY;
 
 	private DataConnectionType dataConnectionType;
+
+	private boolean dataConnectionSecured;
 
 	private String[] mlstOptionTypes;
 
@@ -172,6 +183,14 @@ public class FtpSession {
 
 	public void setDataConnectionType(DataConnectionType dataConnectionType) {
 		this.dataConnectionType = dataConnectionType;
+	}
+
+	public boolean isDataConnectionSecured() {
+		return dataConnectionSecured;
+	}
+
+	public void setDataConnectionSecured(boolean dataConnectionSecured) {
+		this.dataConnectionSecured = dataConnectionSecured;
 	}
 
 	public void addPortDataClient(FtpPortDataClient portDataClient) {
@@ -308,6 +327,42 @@ public class FtpSession {
 			}
 		}
 		return channel.attr(SESSION_KEY).get();
+	}
+
+	private static SelfSignedCertificate getOrCreateCertificate() {
+		try {
+			if (sslCertificateRef.get() == null) {
+				sslCertificateRef.compareAndSet(null, new SelfSignedCertificate());
+			}
+			return sslCertificateRef.get();
+		} catch (CertificateException e) {
+			log.error("failed to create ssl certificate", e);
+			return null;
+		}
+	}
+
+	public SslContext createClientSslContext() {
+		try {
+			return SslContextBuilder.forClient()
+					.trustManager(InsecureTrustManagerFactory.INSTANCE)
+					.build();
+		} catch (SSLException e) {
+			log.error("failed to create client ssl context", e);
+			return null;
+		}
+	}
+
+	public SslContext createServerSslContext() {
+		try {
+			SelfSignedCertificate certificate = getOrCreateCertificate();
+			if (certificate == null) {
+				return null;
+			}
+			return SslContextBuilder.forServer(certificate.certificate(), certificate.privateKey()).build();
+		} catch (SSLException e) {
+			log.error("failed to create server ssl context", e);
+			return null;
+		}
 	}
 
 	public static boolean isAllIdleStateEvent(Object evt) {

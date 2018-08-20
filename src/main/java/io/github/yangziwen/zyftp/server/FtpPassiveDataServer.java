@@ -79,6 +79,9 @@ public class FtpPassiveDataServer implements FtpDataConnection {
 			.childHandler(new ChannelInitializer<Channel>() {
 				@Override
 				protected void initChannel(Channel channel) throws Exception {
+					if (session.isDataConnectionSecured()) {
+						channel.pipeline().addFirst(session.createServerSslContext().newHandler(channel.alloc()));
+					}
 					channel.pipeline()
 						.addLast(new ChannelTrafficShapingHandler(session.getDownloadBytesPerSecond(), session.getUploadBytesPerSecond(), 500))
 						.addLast(new IdleStateHandler(0, 0, session.getServerConfig().getDataConnectionMaxIdleSeconds()))
@@ -131,7 +134,18 @@ public class FtpPassiveDataServer implements FtpDataConnection {
 
 	@Override
 	public Promise<Void> close() {
-		Promise<Void> promise = session.newPromise();
+		if (session.isDataConnectionSecured()) {
+			Promise<Void> promise = session.newPromise();
+			session.getChannel().eventLoop().schedule(() -> {
+				doClose(promise);
+			}, 0L, TimeUnit.MILLISECONDS);
+			return promise;
+		} else {
+			return doClose(session.newPromise());
+		}
+	}
+
+	private Promise<Void> doClose(Promise<Void> promise) {
 		if (!running.compareAndSet(true, false)) {
 			return promise.setFailure(new RuntimeException("data server is not running"));
 		}

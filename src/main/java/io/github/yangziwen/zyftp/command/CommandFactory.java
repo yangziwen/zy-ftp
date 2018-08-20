@@ -20,7 +20,9 @@ import io.github.yangziwen.zyftp.command.impl.NOOP;
 import io.github.yangziwen.zyftp.command.impl.OPTS;
 import io.github.yangziwen.zyftp.command.impl.PASS;
 import io.github.yangziwen.zyftp.command.impl.PASV;
+import io.github.yangziwen.zyftp.command.impl.PBSZ;
 import io.github.yangziwen.zyftp.command.impl.PORT;
+import io.github.yangziwen.zyftp.command.impl.PROT;
 import io.github.yangziwen.zyftp.command.impl.PWD;
 import io.github.yangziwen.zyftp.command.impl.QUIT;
 import io.github.yangziwen.zyftp.command.impl.REST;
@@ -38,13 +40,14 @@ public interface CommandFactory {
 	static Map<String, Command> COMMANDS = ImmutableMap.<String, Command>builder()
 			.put("HELP", new HELP())
 			.put("AUTH", new AUTH())
+			.put("PROT", new PROT())
 			.put("QUIT", new QUIT())
 			.put("ACCT", new ACCT())
 			.put("NOOP", new NOOP())
 			.put("USER", new USER())
 			.put("PASS", new PASS())
 			.put("SYST", new SYST())
-			.put("FEAT", new FEAT())
+//			.put("FEAT", new FEAT())
 			.put("OPTS", new OPTS())
 			.put("TYPE", new TYPE())
 			.put("PASV", new PASV())
@@ -64,6 +67,7 @@ public interface CommandFactory {
 			.put("RETR", new RETR())
 			.put("STOR", new STOR())
 			.put("APPE", new APPE())
+			.put("PBSZ", new PBSZ())
 			.build();
 
 	static Command getCommand(String name) {

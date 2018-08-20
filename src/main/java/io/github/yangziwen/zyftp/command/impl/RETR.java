@@ -67,6 +67,7 @@ public class RETR implements Command {
 		});
 		promise.addListener(f -> {
 			if (!promise.isSuccess()) {
+				log.error("failed to send data", promise.cause());
 				FtpServerHandler.sendResponse(Command.createResponse(FtpReply.REPLY_551, "RETR", session), session.getContext());
 				dataConnection.close();
 				return;
