@@ -7,6 +7,7 @@ import com.google.common.collect.ImmutableMap;
 import io.github.yangziwen.zyftp.command.impl.ABOR;
 import io.github.yangziwen.zyftp.command.impl.ACCT;
 import io.github.yangziwen.zyftp.command.impl.APPE;
+import io.github.yangziwen.zyftp.command.impl.AUTH;
 import io.github.yangziwen.zyftp.command.impl.CDUP;
 import io.github.yangziwen.zyftp.command.impl.CWD;
 import io.github.yangziwen.zyftp.command.impl.DELE;
@@ -36,6 +37,7 @@ public interface CommandFactory {
 
 	static Map<String, Command> COMMANDS = ImmutableMap.<String, Command>builder()
 			.put("HELP", new HELP())
+			.put("AUTH", new AUTH())
 			.put("QUIT", new QUIT())
 			.put("ACCT", new ACCT())
 			.put("NOOP", new NOOP())

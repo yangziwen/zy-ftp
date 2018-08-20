@@ -39,6 +39,8 @@ public enum FtpReply {
 
 	REPLY_230 (230, "user logged in"),
 
+	REPLY_234 (234, "command auth ok"),
+
 	REPLY_250 (250, "requested file action okay"),
 
 	REPLY_257 (257, "pathname created"),
@@ -54,6 +56,8 @@ public enum FtpReply {
 	REPLY_425 (425, "cant open data connection"),
 
 	REPLY_426 (426, "connection closed transfer aborted"),
+
+	REPLY_431 (431, "service is unavailable"),
 
 	REPLY_450 (450, "requested file action not taken"),
 
@@ -74,6 +78,8 @@ public enum FtpReply {
 	REPLY_530 (530, "invalid user"),
 
 	REPLY_532 (532, "need account for storing files"),
+
+	REPLY_534 (534, "Session already secured"),
 
 	REPLY_550 (550, "requested action not taken"),
 
