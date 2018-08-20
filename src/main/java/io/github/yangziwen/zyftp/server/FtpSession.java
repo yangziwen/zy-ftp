@@ -13,6 +13,7 @@ import io.github.yangziwen.zyftp.command.impl.state.OtherState;
 import io.github.yangziwen.zyftp.common.DataConnectionType;
 import io.github.yangziwen.zyftp.common.DataType;
 import io.github.yangziwen.zyftp.config.FtpServerConfig;
+import io.github.yangziwen.zyftp.config.FtpUserConfig;
 import io.github.yangziwen.zyftp.filesystem.FileSystemView;
 import io.github.yangziwen.zyftp.user.User;
 import io.netty.channel.Channel;
@@ -31,8 +32,6 @@ import io.netty.util.concurrent.Promise;
 public class FtpSession {
 
 	private static final AttributeKey<FtpSession> SESSION_KEY = AttributeKey.valueOf("ftp.session");
-
-	public static final String ANONYMOUS = "anonymous";
 
 	public static final AtomicInteger ANONYMOUS_LOGIN_USER_COUNTER = new AtomicInteger();
 
@@ -120,6 +119,10 @@ public class FtpSession {
 
 	public FtpServerConfig getServerConfig() {
 		return serverContext.getServerConfig();
+	}
+
+	public FtpUserConfig getUserConfig(String username) {
+		return getServerConfig().getUserConfigs().get(username);
 	}
 
 	public FileSystemView getFileSystemView() {
@@ -211,7 +214,7 @@ public class FtpSession {
 	}
 
 	public void preLogin(String username) {
-		this.user = new User(username, getServerConfig());
+		this.user = new User(username, getUserConfig(username));
 		this.loggedIn = false;
 	}
 
@@ -259,11 +262,11 @@ public class FtpSession {
 	}
 
 	public static boolean isAnonymous(User user) {
-		return user != null && isAnonymous(user.getUsername());
+		return user != null && user.isAnonymous();
 	}
 
 	public static boolean isAnonymous(String username) {
-		return ANONYMOUS.equals(username);
+		return User.ANONYMOUS.equals(username);
 	}
 
 	public static FtpSession getOrCreateSession(ChannelHandlerContext ctx, FtpServerContext serverContext) {

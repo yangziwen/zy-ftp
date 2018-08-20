@@ -29,32 +29,27 @@ public class PASS implements Command {
 		boolean tooManyLoggedInUsers = FtpSession.TOTAL_LOGIN_USER_COUNTER.get() >= session.getServerConfig().getMaxLogins();
 
 		if (isAnonymous) {
-			tooManyLoggedInUsers |= FtpSession.ANONYMOUS_LOGIN_USER_COUNTER.get() >= session.getServerConfig().getMaxAnonymousLogins();
+			tooManyLoggedInUsers |= FtpSession.ANONYMOUS_LOGIN_USER_COUNTER.get() >= user.getUserConfig().getMaxLogins();
 		}
 
 		if (tooManyLoggedInUsers) {
 			return createFailedResponse(FtpReply.REPLY_421, "USER.anonymous", request, session);
 		}
 
-		String username = user.getUsername();
+		user.setPassword(request.getArgument());
 
-		String password = request.getArgument();
+		if (!user.authenticate()) {
+			return createFailedResponse(FtpReply.REPLY_530, "PASS", request, session);
+		}
 
-		// TODO authenticate and get the valid user instance
-
-		User authenticatedUser = new User(username, password, session.getServerConfig());
-
-		session.login(authenticatedUser);
-
-		// TODO initiate file system view
+		session.login(user);
 
 		return Command.createResponse(FtpReply.REPLY_230, "PASS", request, session);
 	}
 
 	private FtpResponse createFailedResponse(FtpReply reply, String subId, FtpRequest request, FtpSession session) {
-		return Command.createResponse(reply, subId, request, session).flushedPromise(session.newChannelPromise().addListener(future -> {
-			session.logout();
-		}));
+		return Command.createResponse(reply, subId, request, session)
+				.flushedPromise(session.newChannelPromise().addListener(future -> session.logout()));
 	}
 
 }

@@ -4,6 +4,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import io.github.yangziwen.zyftp.command.Command;
 import io.github.yangziwen.zyftp.common.FtpReply;
+import io.github.yangziwen.zyftp.config.FtpUserConfig;
 import io.github.yangziwen.zyftp.server.FtpRequest;
 import io.github.yangziwen.zyftp.server.FtpResponse;
 import io.github.yangziwen.zyftp.server.FtpSession;
@@ -21,7 +22,7 @@ public class USER implements Command {
 
 		if (session.isLoggedIn()) {
 			User user = session.getUser();
-			if (user == null || !username.equals(user.getUsername())) {
+			if (user == null || !username.equals(user.getUsername()) || user.isEnabled()) {
 				return createFailedResponse(FtpReply.REPLY_530, "USER.invalid", request, session);
 			}
 			if (username.equals(user.getUsername())) {
@@ -29,16 +30,18 @@ public class USER implements Command {
 			}
 		}
 
+		FtpUserConfig userConfig = session.getUserConfig(username);
+
 		boolean isAnonymous = FtpSession.isAnonymous(username);
 
-		if (isAnonymous && !session.getServerConfig().isAnonymousEnabled()) {
+		if (isAnonymous && !userConfig.isEnabled()) {
 			return createFailedResponse(FtpReply.REPLY_530, "USER.anonymous", request, session);
 		}
 
 		boolean tooManyLoggedInUsers = FtpSession.TOTAL_LOGIN_USER_COUNTER.get() >= session.getServerConfig().getMaxLogins();
 
 		if (isAnonymous) {
-			tooManyLoggedInUsers |= FtpSession.ANONYMOUS_LOGIN_USER_COUNTER.get() >= session.getServerConfig().getMaxAnonymousLogins();
+			tooManyLoggedInUsers |= FtpSession.ANONYMOUS_LOGIN_USER_COUNTER.get() >= session.getUserConfig(username).getMaxLogins();
 		}
 
 		if (tooManyLoggedInUsers) {
