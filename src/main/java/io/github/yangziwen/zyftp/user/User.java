@@ -47,7 +47,15 @@ public class User {
 	}
 
 	public boolean authenticate() {
-		return userConfig.authenticate(password);
+		return userConfig != null && userConfig.authenticate(password);
+	}
+
+	public boolean isReadAllowed(String path) {
+		return userConfig != null && userConfig.isReadAllowed(path);
+	}
+
+	public boolean isWriteAllowed(String path) {
+		return userConfig != null && userConfig.isWriteAllowed(path);
 	}
 
 }

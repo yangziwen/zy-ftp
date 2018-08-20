@@ -16,7 +16,7 @@ public class RNFR implements Command {
 		}
 		String fileName = request.getArgument();
 		FileView file = session.getFileSystemView().getFile(fileName);
-		if (file == null) {
+		if (!session.isWriteAllowed(file)) {
 			return Command.createResponse(FtpReply.REPLY_550, "RNFR", request, session, fileName);
 		}
 		return Command.createResponse(FtpReply.REPLY_350, "RNFR", request, session, fileName);

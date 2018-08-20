@@ -18,6 +18,9 @@ public class DELE implements Command {
 		if (file == null || !file.isFile()) {
 			return Command.createResponse(FtpReply.REPLY_550, "DELE.invalid", request, session, request.getArgument());
 		}
+		if (!session.isWriteAllowed(file)) {
+			return Command.createResponse(FtpReply.REPLY_450, "DELE.permission", request, session, request.getArgument());
+		}
 		if (!file.delete()) {
 			return Command.createResponse(FtpReply.REPLY_450, "DELE", request, session, file.getVirtualPath());
 		}

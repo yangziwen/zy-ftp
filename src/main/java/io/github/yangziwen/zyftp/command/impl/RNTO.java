@@ -23,6 +23,9 @@ public class RNTO implements Command {
 		if (fromFile == null || toFile == null) {
 			return Command.createResponse(FtpReply.REPLY_553, "RNTO.invalid", session);
 		}
+		if (!session.isWriteAllowed(toFile)) {
+			return Command.createResponse(FtpReply.REPLY_553, "RNTO.permission", session);
+		}
 		if (!fromFile.doesExist()) {
 			return Command.createResponse(FtpReply.REPLY_553, "RNTO.missing", session);
 		}

@@ -86,7 +86,7 @@ public class FileView {
 	}
 
 	public boolean isHidden() {
-		return file.isHidden();
+		return file.isHidden() || !user.isReadAllowed(virtualPath);
 	}
 
 	public boolean isDirectory() {
@@ -94,12 +94,11 @@ public class FileView {
 	}
 
 	public boolean isReadable() {
-		return file.canRead();
+		return file.canRead() && user.isReadAllowed(virtualPath);
 	}
 
 	public boolean isWritable() {
-		// TODO
-		return true;
+		return user.isWriteAllowed(virtualPath);
 	}
 
 	public int getLinkCount() {

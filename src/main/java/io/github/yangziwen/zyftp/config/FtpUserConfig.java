@@ -94,15 +94,18 @@ public class FtpUserConfig {
 		return new Permission(pattern, type);
 	}
 
-	public boolean isReadAllowed(String virtualPath) {
-		return isAllowed(virtualPath, readPermissions);
+	public boolean isReadAllowed(String path) {
+		return isAllowed(path, readPermissions);
 	}
 
-	public boolean isWriteAllowed(String virtualPath) {
-		return isAllowed(virtualPath, writePermissions);
+	public boolean isWriteAllowed(String path) {
+		return isAllowed(path, writePermissions);
 	}
 
 	private boolean isAllowed(String path, List<Permission> permissions) {
+		if (StringUtils.isBlank(path)) {
+			return false;
+		}
 		if (permissions.stream().filter(p -> p.getType() == Type.DENY).anyMatch(p -> p.isMatched(path))) {
 			return false;
 		}

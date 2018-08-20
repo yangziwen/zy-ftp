@@ -15,6 +15,7 @@ import io.github.yangziwen.zyftp.common.DataType;
 import io.github.yangziwen.zyftp.config.FtpServerConfig;
 import io.github.yangziwen.zyftp.config.FtpUserConfig;
 import io.github.yangziwen.zyftp.filesystem.FileSystemView;
+import io.github.yangziwen.zyftp.filesystem.FileView;
 import io.github.yangziwen.zyftp.user.User;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
@@ -123,6 +124,22 @@ public class FtpSession {
 
 	public FtpUserConfig getUserConfig(String username) {
 		return getServerConfig().getUserConfigs().get(username);
+	}
+
+	public boolean isWriteAllowed(FileView file) {
+		return file != null && isWriteAllowed(file.getVirtualPath());
+	}
+
+	public boolean isWriteAllowed(String path) {
+		return user != null && user.isWriteAllowed(path);
+	}
+
+	public boolean isReadAllowed(FileView file) {
+		return file != null && isReadAllowed(file.getVirtualPath());
+	}
+
+	public boolean isReadAllowed(String path) {
+		return user != null && user.isReadAllowed(path);
 	}
 
 	public FileSystemView getFileSystemView() {

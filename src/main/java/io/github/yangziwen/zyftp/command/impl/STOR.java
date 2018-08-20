@@ -21,6 +21,9 @@ public class STOR implements Command {
 		if (file == null) {
 			return Command.createResponse(FtpReply.REPLY_550, "STOR.invalid", request, session, request.getArgument());
 		}
+		if (!session.isWriteAllowed(file)) {
+			return Command.createResponse(FtpReply.REPLY_550, "STOR.permission", request, session, request.getArgument());
+		}
 
 		if (!session.isLatestDataConnectionReady()) {
 			return Command.createResponse(FtpReply.REPLY_425, "STOR", request, session, file.getVirtualPath());

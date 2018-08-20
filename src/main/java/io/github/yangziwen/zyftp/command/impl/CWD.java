@@ -16,6 +16,10 @@ public class CWD implements Command {
 
 		String path = StringUtils.defaultString(request.getArgument(), "/");
 
+		if (!session.isReadAllowed(path)) {
+			return Command.createResponse(FtpReply.REPLY_550, "CWD", session);
+		}
+
 		boolean success = session.getFileSystemView().changeCurrentDirectory(path);
 
 		if (success) {

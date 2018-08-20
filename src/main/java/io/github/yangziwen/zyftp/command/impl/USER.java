@@ -31,6 +31,9 @@ public class USER implements Command {
 		}
 
 		FtpUserConfig userConfig = session.getUserConfig(username);
+		if (userConfig == null) {
+			return createFailedResponse(FtpReply.REPLY_530, "USER.invalid", request, session);
+		}
 
 		boolean isAnonymous = FtpSession.isAnonymous(username);
 
