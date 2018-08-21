@@ -42,16 +42,18 @@ public class FtpServerHandler extends SimpleChannelInboundHandler<FtpRequest> {
 
 	private void processRequest(FtpRequest request, FtpSession session) {
 		Command command = CommandFactory.getCommand(request.getCommand());
-		FtpResponse response = null;
 		if (command != null) {
 			Promise<FtpResponse> promise = command.executeAsync(session, request);
 			promise.addListener(f -> {
 				if (promise.get() != null) {
-					sendResponse(promise.get(), session.getContext());
+					FtpResponse response = promise.get();
+					response.setCommand(request.getCommand());
+					sendResponse(response, session.getContext());
 				}
 			});
 		} else {
-			response = Command.createResponse(FtpReply.REPLY_502, "not.implemented", request, session);
+			FtpResponse response = Command.createResponse(FtpReply.REPLY_502, "not.implemented", request, session);
+			response.setCommand(request.getCommand());
 			sendResponse(response, session.getContext());
 		}
 	}
@@ -93,11 +95,7 @@ public class FtpServerHandler extends SimpleChannelInboundHandler<FtpRequest> {
 	}
 
 	public static ChannelFuture sendResponse(FtpResponse response, ChannelHandlerContext ctx) {
-		return ctx.writeAndFlush(response).addListener(future -> {
-			if (response.getFlushedPromise() != null) {
-				response.notifyFlushed();
-			}
-		});
+		return ctx.writeAndFlush(response).addListener(f -> response.notifyFlushed());
 	}
 
 }

@@ -19,7 +19,11 @@ public class FtpResponseEncoder extends MessageToByteEncoder<FtpResponse> {
 	protected void encode(ChannelHandlerContext ctx, FtpResponse response, ByteBuf out) throws Exception {
 		String line = String.valueOf(response.getCode());
 		if (StringUtils.isNotBlank(response.getMessage())) {
-			line += " " + response.getMessage();
+			if ("FEAT".equals(response.getCommand())) {
+				line += "-" + response.getMessage();
+			} else {
+				line += " " + response.getMessage();
+			}
 		}
 		line += "\r\n";
 		out.writeBytes(line.getBytes(CharsetUtil.UTF_8));

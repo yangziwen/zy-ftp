@@ -48,6 +48,9 @@ public class MLSD implements Command {
 				@Override
 				public ChannelFuture writeAndFlushData(Channel channel) {
 					byte[] bytes = content.getBytes(CharsetUtil.UTF_8);
+					if (bytes.length == 0) {
+						bytes = " ".getBytes(CharsetUtil.UTF_8);
+					}
 					ByteBuf buffer = channel.alloc().buffer(bytes.length).writeBytes(bytes);
 					return channel.writeAndFlush(buffer);
 				}

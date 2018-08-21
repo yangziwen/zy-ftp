@@ -11,6 +11,8 @@ import lombok.Data;
 @Data
 public class FtpResponse {
 
+	private String command;
+
 	private int code;
 
 	private String message;

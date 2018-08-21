@@ -47,7 +47,7 @@ public interface CommandFactory {
 			.put("USER", new USER())
 			.put("PASS", new PASS())
 			.put("SYST", new SYST())
-//			.put("FEAT", new FEAT())
+			.put("FEAT", new FEAT())
 			.put("OPTS", new OPTS())
 			.put("TYPE", new TYPE())
 			.put("PASV", new PASV())
