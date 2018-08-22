@@ -57,6 +57,7 @@ public class MLSD implements Command {
 			});
 			promise.addListener(f1 -> {
 				if (!promise.isSuccess()) {
+					log.error("failed to send list data", promise.cause());
 					FtpServerHandler.sendResponse(Command.createResponse(FtpReply.REPLY_551, "MLSD", session), session.getContext());
 					dataConnection.close();
 					return;

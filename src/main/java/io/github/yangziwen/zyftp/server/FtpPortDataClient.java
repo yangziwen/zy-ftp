@@ -17,6 +17,7 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.ChannelPromise;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.stream.ChunkedWriteHandler;
 import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.handler.traffic.ChannelTrafficShapingHandler;
@@ -64,7 +65,17 @@ public class FtpPortDataClient implements FtpDataConnection {
 							.addLast(new IdleStateHandler(0, 0, session.getServerConfig().getDataConnectionMaxIdleSeconds(), TimeUnit.SECONDS))
 							.addLast(new ChunkedWriteHandler())
 							.addLast(new PortDataClientHandler());
-						connectedPromise.setSuccess(null);
+						if (session.isDataConnectionSecured()) {
+							channel.pipeline().get(SslHandler.class).handshakeFuture().addListener(f -> {
+								if (f.isSuccess()) {
+									connectedPromise.setSuccess(null);
+								} else {
+									connectedPromise.setFailure(f.cause());
+								}
+							});
+						} else {
+							connectedPromise.setSuccess(null);
+						}
 					}
 				})
 				.connect(address).addListener(f -> {
