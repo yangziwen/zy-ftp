@@ -1,5 +1,6 @@
 package io.github.yangziwen.zyftp.command;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,7 +13,9 @@ import io.netty.util.concurrent.Promise;
 
 public interface Command {
 
-	static Logger log = LoggerFactory.getLogger(Command.class);
+	Logger log = LoggerFactory.getLogger(Command.class);
+
+	String[] NON_AUTHENTICATED_COMMANDS = {"USER", "PASS", "AUTH", "QUIT", "PROT", "PBSZ" };
 
 	FtpResponse execute(FtpSession session, FtpRequest request);
 
@@ -21,6 +24,10 @@ public interface Command {
 		Promise<FtpResponse> promise = session.newPromise();
 		promise.setSuccess(execute(session, request));
 		return promise;
+	}
+
+	default boolean canRunWithoutLogin() {
+		return ArrayUtils.contains(NON_AUTHENTICATED_COMMANDS, getClass().getSimpleName());
 	}
 
 	static FtpResponse createResponse(FtpReply reply, FtpSession session) {
