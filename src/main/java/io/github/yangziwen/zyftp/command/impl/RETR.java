@@ -1,6 +1,7 @@
 package io.github.yangziwen.zyftp.command.impl;
 
 import java.io.IOException;
+import java.nio.channels.ClosedChannelException;
 
 import io.github.yangziwen.zyftp.command.Command;
 import io.github.yangziwen.zyftp.common.FtpReply;
@@ -15,7 +16,9 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.handler.stream.ChunkedFile;
 import io.netty.util.concurrent.Promise;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class RETR implements Command {
 
 	@Override
@@ -35,6 +38,10 @@ public class RETR implements Command {
 		}
 		if (!session.isLatestDataConnectionReady()) {
 			return Command.createResponse(FtpReply.REPLY_425, "RETR", request, session, file.getVirtualPath());
+		}
+		if (!session.increaseDownloadConnections()) {
+			session.getLatestDataConnection().close();
+			return Command.createResponse(FtpReply.REPLY_425, "RETR", request, session);
 		}
 		long offset = parseOffset(session.getCommandState().getRequest("REST"));
 		FtpResponse response = Command.createResponse(FtpReply.REPLY_150, "RETR", session);
@@ -66,8 +73,13 @@ public class RETR implements Command {
 			}
 		});
 		promise.addListener(f -> {
+			session.decreaseDownloadConnections();
 			if (!promise.isSuccess()) {
-				log.error("failed to send data", promise.cause());
+				if (promise.cause() instanceof ClosedChannelException) {
+					log.warn("channel is closed by peer when sending data");
+				} else {
+					log.error("failed to send data", promise.cause());
+				}
 				FtpServerHandler.sendResponse(Command.createResponse(FtpReply.REPLY_551, "RETR", session), session.getContext());
 				dataConnection.close();
 				return;

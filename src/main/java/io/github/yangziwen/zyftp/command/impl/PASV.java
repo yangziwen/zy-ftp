@@ -10,7 +10,9 @@ import io.github.yangziwen.zyftp.server.FtpRequest;
 import io.github.yangziwen.zyftp.server.FtpResponse;
 import io.github.yangziwen.zyftp.server.FtpSession;
 import io.netty.util.concurrent.Promise;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class PASV implements Command {
 
 	@Override

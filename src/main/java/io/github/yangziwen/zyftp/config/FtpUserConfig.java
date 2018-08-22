@@ -34,6 +34,10 @@ public class FtpUserConfig {
 
 	private int maxLogins;
 
+	private int maxUploadConnectionsPerSession;
+
+	private int maxDownloadConnectionsPerSession;
+
 	private long uploadBytesPerSecond;
 
 	private long downloadBytesPerSecond;
@@ -58,6 +62,12 @@ public class FtpUserConfig {
 			config.setHomeDirectory(new File(homeDirectoryPath).getAbsolutePath());
 			config.setEnabled(getBooleanOrDefault(userConfig, "enabled", false));
 			config.setMaxLogins(getIntOrDefault(userConfig, "max-logins", DEFAULT_MAX_LOGINS));
+
+			config.setMaxUploadConnectionsPerSession(
+					getIntOrDefault(userConfig, "max-upload-connections-per-session", serverConfig.getDefaultMaxUploadConnectionsPerSession()));
+
+			config.setMaxDownloadConnectionsPerSession(
+					getIntOrDefault(userConfig, "max-download-connections-per-session", serverConfig.getDefaultMaxDownloadConnectionsPerSession()));
 
 			String uploadBytesPerSecondValue = getStringOrDefault(userConfig, "upload-bytes-per-second", "");
 			config.setUploadBytesPerSecond(parseBytes(uploadBytesPerSecondValue, serverConfig.getDefaultDownloadBytesPerSecond()));

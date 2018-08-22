@@ -26,6 +26,14 @@ public class User {
 		this.password = password;
 	}
 
+	public int getMaxUploadConnectionsPerSession() {
+		return userConfig.getMaxUploadConnectionsPerSession();
+	}
+
+	public int getMaxDownloadConnectionsPerSession() {
+		return userConfig.getMaxDownloadConnectionsPerSession();
+	}
+
 	public long getUploadBytesPerSecond() {
 		return userConfig.getUploadBytesPerSecond();
 	}

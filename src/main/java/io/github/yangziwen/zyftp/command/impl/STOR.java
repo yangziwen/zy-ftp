@@ -29,6 +29,11 @@ public class STOR implements Command {
 			return Command.createResponse(FtpReply.REPLY_425, "STOR", request, session, file.getVirtualPath());
 		}
 
+		if (!session.increaseUploadConnections()) {
+			session.getLatestDataConnection().close();
+			return Command.createResponse(FtpReply.REPLY_425, "STOR", request, session);
+		}
+
 		FtpResponse response = Command.createResponse(FtpReply.REPLY_150, "STOR", session);
 		response.setFlushedPromise(session.newChannelPromise().addListener(f -> {
 			doReceiveFileContent(session, request, file);
@@ -38,6 +43,7 @@ public class STOR implements Command {
 
 	private void doReceiveFileContent(FtpSession session, FtpRequest request, FileView file) {
 		session.getLatestDataConnection().getCloseFuture().addListener(f -> {
+			session.decreaseUploadConnections();
 			FtpServerHandler.sendResponse(Command.createResponse(FtpReply.REPLY_226, "STOR", session), session.getContext());
 		});
 	}

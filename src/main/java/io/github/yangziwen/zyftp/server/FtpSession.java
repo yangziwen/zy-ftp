@@ -71,6 +71,10 @@ public class FtpSession {
 
 	private String[] mlstOptionTypes;
 
+	private AtomicInteger uploadConnectionCounter = new AtomicInteger();
+
+	private AtomicInteger downloadConnectionCounter = new AtomicInteger();
+
 	private KeySetView<FtpPassiveDataServer, Boolean> passiveDataServers = ConcurrentHashMap.newKeySet();
 
 	private AtomicReference<FtpPassiveDataServer> latestPassiveDataServer = new AtomicReference<>();
@@ -249,6 +253,52 @@ public class FtpSession {
 		}
 		if (dataConnectionType == DataConnectionType.PORT) {
 			return portDataClients.stream().anyMatch(FtpPortDataClient::isConnected);
+		}
+		return false;
+	}
+
+	public int getUploadConnectionCount() {
+		return uploadConnectionCounter.get();
+	}
+
+	public boolean increaseUploadConnections() {
+		return increaseCounter(uploadConnectionCounter, user.getMaxUploadConnectionsPerSession());
+	}
+
+	public boolean decreaseUploadConnections() {
+		return decreaseCounter(uploadConnectionCounter, 0);
+	}
+
+	public int getDownloadConnectionCount() {
+		return downloadConnectionCounter.get();
+	}
+
+	public boolean increaseDownloadConnections() {
+		return increaseCounter(downloadConnectionCounter, user.getMaxDownloadConnectionsPerSession());
+	}
+
+	public boolean decreaseDownloadConnections() {
+		return decreaseCounter(downloadConnectionCounter, 0);
+	}
+
+	private boolean increaseCounter(AtomicInteger counter, int ceil) {
+		int count = counter.get();
+		while (count < ceil) {
+			if (counter.compareAndSet(count, count + 1)) {
+				log.info("increased to " + counter.get());
+				return true;
+			}
+			count = counter.get();
+		}
+		return false;
+	}
+
+	private boolean decreaseCounter(AtomicInteger counter, int floor) {
+		int count = counter.get();
+		while (count > floor) {
+			if (counter.compareAndSet(count, count - 1)) {
+				return true;
+			}
 		}
 		return false;
 	}

@@ -34,6 +34,13 @@ public class FtpServerConfig {
 
 	private static final String DEFAULT_PASSIVE_PORTS = "40000-50000";
 
+	// 在实际协议中，每个session只能开启一个上传下载通道
+	// 客户端是通过同时登录多次，实现的多个文件并行下载
+	// 即实际通过一个账户的最大登录数限制并行下载数即可
+	private static final int DEFAULT_MAX_UPLOAD_CONNECTIONS_PER_SESSION = 10;
+
+	private static final int DEFAULT_MAX_DOWNLOAD_CONNECTIONS_PER_SESSION = 10;
+
 	private static final long DEFAULT_UPLOAD_BYTES_PER_SECOND = 500 * 1024L;
 
 	private static final long DEFAULT_DOWNLOAD_BYTES_PER_SECOND = 500 * 1024L;
@@ -49,6 +56,10 @@ public class FtpServerConfig {
 	private String passiveAddress;
 
 	private String passivePortsString;
+
+	private int defaultMaxUploadConnectionsPerSession;
+
+	private int defaultMaxDownloadConnectionsPerSession;
 
 	private long defaultUploadBytesPerSecond;
 
@@ -81,6 +92,10 @@ public class FtpServerConfig {
 		config.setPassivePortsString(getStringOrDefault(passiveConfig, "ports", DEFAULT_PASSIVE_PORTS));
 
 		Config connectionConfig = getConfig(serverConfig, "connection");
+		config.setDefaultMaxUploadConnectionsPerSession(getIntOrDefault(
+				connectionConfig, "default-max-upload-connections-per-session", DEFAULT_MAX_UPLOAD_CONNECTIONS_PER_SESSION));
+		config.setDefaultMaxDownloadConnectionsPerSession(getIntOrDefault(
+				connectionConfig, "default-max-download-connections-per-session", DEFAULT_MAX_DOWNLOAD_CONNECTIONS_PER_SESSION));
 		config.setDefaultUploadBytesPerSecond(parseBytes(
 				getString(connectionConfig, "default-upload-bytes-per-second"), DEFAULT_UPLOAD_BYTES_PER_SECOND));
 		config.setDefaultDownloadBytesPerSecond(parseBytes(

@@ -9,7 +9,9 @@ import io.github.yangziwen.zyftp.server.FtpRequest;
 import io.github.yangziwen.zyftp.server.FtpResponse;
 import io.github.yangziwen.zyftp.server.FtpSession;
 import io.github.yangziwen.zyftp.user.User;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class USER implements Command {
 
 	@Override
