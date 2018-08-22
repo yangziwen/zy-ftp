@@ -14,7 +14,7 @@ import io.github.yangziwen.zyftp.server.FtpSession;
 
 public class OPTS_MLST implements Command {
 
-	private final static String[] AVAILABLE_TYPES = { "Size", "Modify", "Type", "Perm" };
+	private final static String[] AVAILABLE_TYPES = { "size", "modify", "type", "perm" };
 
 	@Override
 	public FtpResponse execute(FtpSession session, FtpRequest request) {
@@ -23,7 +23,7 @@ public class OPTS_MLST implements Command {
 
 		String listTypes = spIndex == -1 ? "" : request.getArgument().substring(spIndex + 1);
 
-		String[] types = StringUtils.isBlank(listTypes) ? ArrayUtils.EMPTY_STRING_ARRAY : listTypes.split(";");
+		String[] types = StringUtils.isBlank(listTypes) ? ArrayUtils.EMPTY_STRING_ARRAY : listTypes.toLowerCase().split(";");
 
 		String[] validatedTypes = validateSelectedTypes(types);
 

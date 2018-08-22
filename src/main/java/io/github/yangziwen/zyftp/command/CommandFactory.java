@@ -30,6 +30,7 @@ import io.github.yangziwen.zyftp.command.impl.RETR;
 import io.github.yangziwen.zyftp.command.impl.RMD;
 import io.github.yangziwen.zyftp.command.impl.RNFR;
 import io.github.yangziwen.zyftp.command.impl.RNTO;
+import io.github.yangziwen.zyftp.command.impl.SIZE;
 import io.github.yangziwen.zyftp.command.impl.STOR;
 import io.github.yangziwen.zyftp.command.impl.SYST;
 import io.github.yangziwen.zyftp.command.impl.TYPE;
@@ -68,10 +69,11 @@ public interface CommandFactory {
 			.put("STOR", new STOR())
 			.put("APPE", new APPE())
 			.put("PBSZ", new PBSZ())
+			.put("SIZE", new SIZE())
 			.build();
 
 	static Command getCommand(String name) {
-		return COMMANDS.get(name);
+		return COMMANDS.get(name.toUpperCase());
 	}
 
 }
