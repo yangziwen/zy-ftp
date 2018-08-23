@@ -1,6 +1,7 @@
 package io.github.yangziwen.zyftp.command.impl;
 
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.nio.channels.ClosedChannelException;
 
 import io.github.yangziwen.zyftp.command.Command;
@@ -65,12 +66,12 @@ public class RETR implements Command {
 
 	private void doSendFileContent(FtpSession session, FtpRequest request, FileView file, long offset) throws IOException {
 		// Traffic shape handler cannot control the write rate of DefaultFileRegion, so use ChunkedFile instead
-		ChunkedFile chunkedFile = new ChunkedFile(file.getRealFile());
+		ChunkedFile chunkedFile = new ChunkedFile(new RandomAccessFile(file.getRealFile(), "r"), offset, file.getSize() - offset, 8192);
 		FtpDataConnection dataConnection = session.getLatestDataConnection();
 		Promise<Void> promise = dataConnection.writeAndFlushData(new FtpDataWriter() {
 			@Override
 			public ChannelFuture writeAndFlushData(Channel ctx) {
-				return ctx.writeAndFlush(chunkedFile);
+				return ctx.writeAndFlush(chunkedFile).addListener(f -> chunkedFile.close());
 			}
 		});
 		promise.addListener(f -> {
