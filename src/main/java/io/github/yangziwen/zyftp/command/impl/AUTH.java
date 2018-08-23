@@ -13,10 +13,10 @@ public class AUTH implements Command {
 	@Override
 	public FtpResponse execute(FtpSession session, FtpRequest request) {
 		if (!request.hasArgument()) {
-			return Command.createResponse(FtpReply.REPLY_501, "AUTH", session);
+			return createResponse(FtpReply.REPLY_501, request);
 		}
 		if (session.getChannel().pipeline().get(SslHandler.class) != null) {
-			return Command.createResponse(FtpReply.REPLY_534, "AUTH", session);
+			return createResponse(FtpReply.REPLY_534, request);
 		}
 		String authType = request.getArgument().toUpperCase();
 		if ("TLS-C".equals(authType)) {
@@ -26,9 +26,9 @@ public class AUTH implements Command {
 		}
 		SslContext sslContext = session.createServerSslContext();
 		if (sslContext == null) {
-			return Command.createResponse(FtpReply.REPLY_431, "AUTH", session);
+			return createResponse(FtpReply.REPLY_431, request);
 		}
-		return Command.createResponse(FtpReply.REPLY_234, "AUTH." + authType, session)
+		return Command.createResponse(FtpReply.REPLY_234, nameWithSuffix(authType), request)
 				.flushedPromise(session.newChannelPromise().addListener(f -> {
 					session.getChannel().pipeline().addFirst(sslContext.newHandler(session.getChannel().alloc()));
 				}));

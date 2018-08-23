@@ -41,15 +41,16 @@ public class FtpServerHandler extends SimpleChannelInboundHandler<FtpRequest> {
 	}
 
 	private void processRequest(FtpRequest request, FtpSession session) {
+		request.setSession(session);
 		Command command = CommandFactory.getCommand(request.getCommand());
 		if (command == null) {
-			FtpResponse response = Command.createResponse(FtpReply.REPLY_502, "not.implemented", request, session);
+			FtpResponse response = Command.createResponse(FtpReply.REPLY_502, "not.implemented", request);
 			response.setCommand(request.getCommand());
 			sendResponse(response, session.getContext());
 			return;
 		}
 		if (!session.isLoggedIn() && !command.canRunWithoutLogin()) {
-			FtpResponse response = Command.createResponse(FtpReply.REPLY_530, "permission", request, session);
+			FtpResponse response = Command.createResponse(FtpReply.REPLY_530, "permission", request);
 			response.setCommand(request.getCommand());
 			sendResponse(response, session.getContext());
 			return;

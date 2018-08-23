@@ -24,27 +24,28 @@ public class RETR implements Command {
 	@Override
 	public FtpResponse execute(FtpSession session, FtpRequest request) {
 		if (!request.hasArgument()) {
-			return Command.createResponse(FtpReply.REPLY_501, "RETR", session);
+			return createResponse(FtpReply.REPLY_501, request);
 		}
 		FileView file = session.getFileSystemView().getFile(request.getArgument());
 		if (file == null || !file.doesExist()) {
-			return Command.createResponse(FtpReply.REPLY_550, "RETR.missing", request, session, request.getArgument());
+			return Command.createResponse(FtpReply.REPLY_550, nameWithSuffix("missing"), request);
 		}
+		request.attr("filePath", file.getVirtualPath());
 		if (!file.isFile()) {
-			return Command.createResponse(FtpReply.REPLY_550, "RETR.invalid", request, session, file.getVirtualPath());
+			return Command.createResponse(FtpReply.REPLY_550, nameWithSuffix("invalid"), request);
 		}
 		if (!file.isReadable()) {
-			return Command.createResponse(FtpReply.REPLY_550, "RETR.permission", request, session, file.getVirtualPath());
+			return Command.createResponse(FtpReply.REPLY_550, nameWithSuffix("permission"), request);
 		}
 		if (!session.isLatestDataConnectionReady()) {
-			return Command.createResponse(FtpReply.REPLY_425, "RETR", request, session, file.getVirtualPath());
+			return createResponse(FtpReply.REPLY_425, request);
 		}
 		if (!session.increaseDownloadConnections()) {
 			session.getLatestDataConnection().close();
-			return Command.createResponse(FtpReply.REPLY_425, "RETR", request, session);
+			return createResponse(FtpReply.REPLY_425, request);
 		}
 		long offset = parseOffset(session.getCommandState().getRequest("REST"));
-		FtpResponse response = Command.createResponse(FtpReply.REPLY_150, "RETR", session);
+		FtpResponse response = createResponse(FtpReply.REPLY_150, request);
 		response.setFlushedPromise(session.newChannelPromise().addListener(f -> {
 			doSendFileContent(session, request, file, offset);
 		}));
@@ -80,11 +81,11 @@ public class RETR implements Command {
 				} else {
 					log.error("failed to send data", promise.cause());
 				}
-				FtpServerHandler.sendResponse(Command.createResponse(FtpReply.REPLY_551, "RETR", session), session.getContext());
+				FtpServerHandler.sendResponse(createResponse(FtpReply.REPLY_551, request), session.getContext());
 				dataConnection.close();
 				return;
 			}
-			FtpServerHandler.sendResponse(Command.createResponse(FtpReply.REPLY_226, "RETR", session), session.getContext())
+			FtpServerHandler.sendResponse(createResponse(FtpReply.REPLY_226, request), session.getContext())
 				.addListener(f2 ->  dataConnection.close());
 		});
 	}

@@ -12,19 +12,20 @@ public class DELE implements Command {
 	@Override
 	public FtpResponse execute(FtpSession session, FtpRequest request) {
 		if (!request.hasArgument()) {
-			return Command.createResponse(FtpReply.REPLY_501, "DELE", session);
+			return createResponse(FtpReply.REPLY_501, request);
 		}
 		FileView file = session.getFileSystemView().getFile(request.getArgument());
 		if (file == null || !file.isFile()) {
-			return Command.createResponse(FtpReply.REPLY_550, "DELE.invalid", request, session, request.getArgument());
+			return Command.createResponse(FtpReply.REPLY_550, nameWithSuffix("invalid"), request);
 		}
+		request.attr("filePath", file.getVirtualPath());
 		if (!session.isWriteAllowed(file)) {
-			return Command.createResponse(FtpReply.REPLY_450, "DELE.permission", request, session, request.getArgument());
+			return Command.createResponse(FtpReply.REPLY_450, nameWithSuffix("permission"), request);
 		}
 		if (!file.delete()) {
-			return Command.createResponse(FtpReply.REPLY_450, "DELE", request, session, file.getVirtualPath());
+			return createResponse(FtpReply.REPLY_450, request);
 		}
-		return Command.createResponse(FtpReply.REPLY_250, "DELE", request, session, file.getVirtualPath());
+		return createResponse(FtpReply.REPLY_250, request);
 	}
 
 }

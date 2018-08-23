@@ -7,7 +7,6 @@ import io.github.yangziwen.zyftp.common.FtpReply;
 import io.github.yangziwen.zyftp.server.FtpRequest;
 import io.github.yangziwen.zyftp.server.FtpResponse;
 import io.github.yangziwen.zyftp.server.FtpSession;
-import io.github.yangziwen.zyftp.util.ResponseMessageVariableReplacer;
 
 public class SYST implements Command {
 
@@ -21,10 +20,7 @@ public class SYST implements Command {
 		} else {
 			systemName = systemName.replaceAll(" ", "-").toUpperCase();
 		}
-
-		FtpResponse response = Command.createResponse(FtpReply.REPLY_215, "SYST", request, session);
-		response.setBasicMsg(systemName);
-		return ResponseMessageVariableReplacer.replaceVariables(FtpReply.REPLY_215.getCode(), "SYST", request, response, session);
+		return createResponse(FtpReply.REPLY_215, request.attr("systemName", systemName));
 	}
 
 }

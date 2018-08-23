@@ -12,22 +12,26 @@ public class MKD implements Command {
 	@Override
 	public FtpResponse execute(FtpSession session, FtpRequest request) {
 		if (!request.hasArgument()) {
-			return Command.createResponse(FtpReply.REPLY_501, "MKD", session);
+			return createResponse(FtpReply.REPLY_501, request);
 		}
 		FileView file = session.getFileSystemView().getFile(request.getArgument());
 		if (file == null) {
-			return Command.createResponse(FtpReply.REPLY_550, "MKD.invalid", request, session, request.getArgument());
+			return Command.createResponse(FtpReply.REPLY_550, nameWithSuffix("invalid"), request);
+		}
+		request.attr("dirPath", file.getVirtualPath());
+		if (!session.isWriteAllowed(file)) {
+			return Command.createResponse(FtpReply.REPLY_550, nameWithSuffix("permission"), request);
 		}
 		if (!file.isWritable()) {
-			return Command.createResponse(FtpReply.REPLY_550, "MKD.permission", request, session, file.getVirtualPath());
+			return Command.createResponse(FtpReply.REPLY_550, nameWithSuffix("permission"), request);
 		}
 		if (file.doesExist()) {
-			return Command.createResponse(FtpReply.REPLY_550, "MKD.exists", request, session, file.getVirtualPath());
+			return Command.createResponse(FtpReply.REPLY_550, nameWithSuffix("exists"), request);
 		}
 		if (!file.mkdir()) {
-			return Command.createResponse(FtpReply.REPLY_550, "MKD", request, session, file.getVirtualPath());
+			return createResponse(FtpReply.REPLY_550, request);
 		}
-		return Command.createResponse(FtpReply.REPLY_257, "MKD", request, session, file.getVirtualPath());
+		return createResponse(FtpReply.REPLY_257, request);
 	}
 
 }

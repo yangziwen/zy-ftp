@@ -16,36 +16,45 @@ public class PASS implements Command {
 
 		User user = session.getUser();
 
+		if (!request.hasArgument()) {
+			return createFailedResponse(FtpReply.REPLY_501, request);
+		}
+
 		if (user == null || StringUtils.isBlank(user.getUsername())) {
-			return createFailedResponse(FtpReply.REPLY_503, "PASS", request, session);
+			return createFailedResponse(FtpReply.REPLY_503, request);
 		}
 
 		if (session.isLoggedIn()) {
-			return Command.createResponse(FtpReply.REPLY_202, "PASS", request, session);
+			return createResponse(FtpReply.REPLY_202, request);
 		}
 
 		if (FtpSession.getLoggedInUserTotalCount() >= session.getServerConfig().getMaxLogins()) {
-			return createFailedResponse(FtpReply.REPLY_421, "USER.login", request, session);
+			return createFailedResponse(FtpReply.REPLY_421, nameWithSuffix("login"), request);
 		}
 
 		if (FtpSession.getLoggedInUserCount(user.getUsername()) >= user.getUserConfig().getMaxLogins()) {
-			return createFailedResponse(FtpReply.REPLY_421, "USER.login", request, session);
+			return createFailedResponse(FtpReply.REPLY_421, nameWithSuffix("login"), request);
 		}
 
 		user.setPassword(request.getArgument());
 
 		if (!user.authenticate()) {
-			return createFailedResponse(FtpReply.REPLY_530, "PASS", request, session);
+			return createFailedResponse(FtpReply.REPLY_530, request);
 		}
 
 		session.login(user);
 
-		return Command.createResponse(FtpReply.REPLY_230, "PASS", request, session);
+		return createResponse(FtpReply.REPLY_230, request);
 	}
 
-	private FtpResponse createFailedResponse(FtpReply reply, String subId, FtpRequest request, FtpSession session) {
-		return Command.createResponse(reply, subId, request, session)
-				.flushedPromise(session.newChannelPromise().addListener(future -> session.logout()));
+	private FtpResponse createFailedResponse(FtpReply reply, String subId, FtpRequest request) {
+		return Command.createResponse(reply, subId, request)
+				.flushedPromise(request.getSession().newChannelPromise()
+						.addListener(future -> request.getSession().logout()));
+	}
+
+	private FtpResponse createFailedResponse(FtpReply reply, FtpRequest request) {
+		return createFailedResponse(reply, name(), request);
 	}
 
 }

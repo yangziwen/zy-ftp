@@ -12,14 +12,15 @@ public class RNFR implements Command {
 	@Override
 	public FtpResponse execute(FtpSession session, FtpRequest request) {
 		if (!request.hasArgument()) {
-			return Command.createResponse(FtpReply.REPLY_501, "RNFR", session);
+			return createResponse(FtpReply.REPLY_501, request);
 		}
 		String fileName = request.getArgument();
 		FileView file = session.getFileSystemView().getFile(fileName);
+		request.attr("fileName", fileName);
 		if (!session.isWriteAllowed(file)) {
-			return Command.createResponse(FtpReply.REPLY_550, "RNFR", request, session, fileName);
+			return createResponse(FtpReply.REPLY_550, request);
 		}
-		return Command.createResponse(FtpReply.REPLY_350, "RNFR", request, session, fileName);
+		return createResponse(FtpReply.REPLY_350, request);
 	}
 
 

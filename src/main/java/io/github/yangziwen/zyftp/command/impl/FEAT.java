@@ -12,7 +12,7 @@ public class FEAT implements Command {
 	// seems the FEAT negotiation of lftp and filezilla are quite different
 	@Override
 	public FtpResponse execute(FtpSession session, FtpRequest request) {
-		return Command.createResponse(FtpReply.REPLY_211, "FEAT", session);
+		return createResponse(FtpReply.REPLY_211, request);
 	}
 
 }

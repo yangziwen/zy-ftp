@@ -1,5 +1,7 @@
 package io.github.yangziwen.zyftp.common;
 
+import org.apache.commons.lang3.StringUtils;
+
 import lombok.Getter;
 
 @Getter
@@ -96,6 +98,13 @@ public enum FtpReply {
 	private FtpReply(int code, String description) {
 		this.code = code;
 		this.description = description;
+	}
+
+	public String getMessageKey(String subId) {
+		if (StringUtils.isBlank(subId)) {
+			return String.valueOf(code);
+		}
+		return code + "." + subId;
 	}
 
 }

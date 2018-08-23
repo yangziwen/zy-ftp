@@ -28,12 +28,12 @@ public class OPTS_MLST implements Command {
 		String[] validatedTypes = validateSelectedTypes(types);
 
 		if (ArrayUtils.isEmpty(validatedTypes)) {
-			return Command.createResponse(FtpReply.REPLY_501, "OPTS.MLST", request, session, listTypes);
+			return createResponse(FtpReply.REPLY_501, request);
 		}
 
 		session.setMlstOptionTypes(validatedTypes);
 
-		return Command.createResponse(FtpReply.REPLY_200, "OPTS.MLST", request, session, StringUtils.join(validatedTypes, ";"));
+		return createResponse(FtpReply.REPLY_200, request);
 	}
 
 	private String[] validateSelectedTypes(String[] types) {

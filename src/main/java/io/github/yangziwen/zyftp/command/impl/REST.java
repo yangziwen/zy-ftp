@@ -11,18 +11,18 @@ public class REST implements Command {
 	@Override
 	public FtpResponse execute(FtpSession session, FtpRequest request) {
 		if (!request.hasArgument()) {
-			return Command.createResponse(FtpReply.REPLY_501, "REST", session);
+			return createResponse(FtpReply.REPLY_501, request);
 		}
 		long skipLen = 0L;
 		try {
 			skipLen = Long.parseLong(request.getArgument());
 		} catch (NumberFormatException ex) {
-			return Command.createResponse(FtpReply.REPLY_501, "REST.invalid", session);
+			return Command.createResponse(FtpReply.REPLY_501, nameWithSuffix("invalid"), request);
 		}
 		if (skipLen < 0L) {
-			return Command.createResponse(FtpReply.REPLY_501, "REST.negetive", session);
+			return Command.createResponse(FtpReply.REPLY_501, nameWithSuffix("negetive"), request);
 		}
-		return Command.createResponse(FtpReply.REPLY_350, "REST", session);
+		return createResponse(FtpReply.REPLY_350, request);
 	}
 
 }

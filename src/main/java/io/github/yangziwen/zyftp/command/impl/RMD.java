@@ -12,22 +12,26 @@ public class RMD implements Command {
 	@Override
 	public FtpResponse execute(FtpSession session, FtpRequest request) {
 		if (!request.hasArgument()) {
-			return Command.createResponse(FtpReply.REPLY_501, "RMD", session);
+			return createResponse(FtpReply.REPLY_501, request);
 		}
 		FileView file = session.getFileSystemView().getFile(request.getArgument());
 		if (file == null) {
-			return Command.createResponse(FtpReply.REPLY_550, "RMD.permission", request, session, request.getArgument());
+			return Command.createResponse(FtpReply.REPLY_550, nameWithSuffix("invalid"), request);
 		}
 		if (!file.isDirectory()) {
-			return Command.createResponse(FtpReply.REPLY_550, "RMD.invalid", request, session, file.getVirtualPath());
+			return Command.createResponse(FtpReply.REPLY_550, nameWithSuffix("invalid"), request);
+		}
+		request.attr("dirPath", file.getVirtualPath());
+		if (!session.isWriteAllowed(file)) {
+			return Command.createResponse(FtpReply.REPLY_550, nameWithSuffix("permission"), request);
 		}
 		if (session.getFileSystemView().getCurrentDirectory().hasParent(file)) {
-			return Command.createResponse(FtpReply.REPLY_450, "RMD.busy", request, session, file.getVirtualPath());
+			return Command.createResponse(FtpReply.REPLY_450, nameWithSuffix("busy"), request);
 		}
 		if (!file.delete()) {
-			return Command.createResponse(FtpReply.REPLY_450, "RMD", request, session, file.getVirtualPath());
+			return createResponse(FtpReply.REPLY_450, request);
 		}
-		return Command.createResponse(FtpReply.REPLY_250, "RMD", request, session, file.getVirtualPath());
+		return createResponse(FtpReply.REPLY_250, request);
 	}
 
 }

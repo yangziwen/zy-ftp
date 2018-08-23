@@ -12,27 +12,29 @@ public class RNTO implements Command {
 	@Override
 	public FtpResponse execute(FtpSession session, FtpRequest request) {
 		if (!request.hasArgument()) {
-			return Command.createResponse(FtpReply.REPLY_501, "RNTO", session);
+			return createResponse(FtpReply.REPLY_501, request);
 		}
 		FtpRequest prevRequest = session.getCommandState().getRequest("RNFR");
 		if (prevRequest == null || !prevRequest.hasArgument()) {
-			return Command.createResponse(FtpReply.REPLY_503, "RNTO", session);
+			return createResponse(FtpReply.REPLY_503, request);
 		}
 		FileView fromFile = session.getFileSystemView().getFile(prevRequest.getArgument());
 		FileView toFile = session.getFileSystemView().getFile(request.getArgument());
 		if (fromFile == null || toFile == null) {
-			return Command.createResponse(FtpReply.REPLY_553, "RNTO.invalid", session);
+			return Command.createResponse(FtpReply.REPLY_553, nameWithSuffix("invalid"), request);
 		}
+		request.attr("fromFile", fromFile.getVirtualPath());
+		request.attr("toFile", toFile.getVirtualPath());
 		if (!session.isWriteAllowed(toFile)) {
-			return Command.createResponse(FtpReply.REPLY_553, "RNTO.permission", session);
+			return Command.createResponse(FtpReply.REPLY_553, nameWithSuffix("permission"), request);
 		}
 		if (!fromFile.doesExist()) {
-			return Command.createResponse(FtpReply.REPLY_553, "RNTO.missing", session);
+			return Command.createResponse(FtpReply.REPLY_553, nameWithSuffix("missing"), request);
 		}
 		if (!fromFile.moveTo(toFile)) {
-			return Command.createResponse(FtpReply.REPLY_553, "RNTO", session);
+			return createResponse(FtpReply.REPLY_553, request);
 		}
-		return Command.createResponse(FtpReply.REPLY_250, "RNTO", session);
+		return createResponse(FtpReply.REPLY_250, request);
 	}
 
 }

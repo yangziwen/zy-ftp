@@ -30,11 +30,18 @@ public class PASV implements Command {
 			FtpPassiveDataServer passiveDataServer = new FtpPassiveDataServer(session);
 			session.addPassiveDataServer(passiveDataServer);
 			passiveDataServer.start(port).addListener(f2 -> {
-				InetSocketAddress address = (InetSocketAddress) passiveDataServer.getServerChannel().localAddress();
-				String addrStr = encode(session, address);
-				FtpResponse response = Command.createResponse(FtpReply.REPLY_227, "PASV", request, session, addrStr);
-				session.setDataConnectionType(DataConnectionType.PASV);
-				promise.setSuccess(response);
+				if (!f2.isSuccess()) {
+					FtpResponse response = createResponse(FtpReply.REPLY_425, request);
+					promise.setSuccess(response);
+					log.error("failed to open passive connection", f2.cause());
+				} else {
+					InetSocketAddress address = (InetSocketAddress) passiveDataServer.getServerChannel().localAddress();
+					request.attr("address", encode(session, address));
+					FtpResponse response = createResponse(FtpReply.REPLY_227, request);
+					session.setDataConnectionType(DataConnectionType.PASV);
+					promise.setSuccess(response);
+					log.info("passive data connection[{}] is opened for session[{}]", address, session);
+				}
 			});
 		});
 		return promise;

@@ -10,7 +10,7 @@ public class OPTS_UTF8 implements Command {
 
 	@Override
 	public FtpResponse execute(FtpSession session, FtpRequest request) {
-		return Command.createResponse(FtpReply.REPLY_200, "OPTS.UTF8", session);
+		return createResponse(FtpReply.REPLY_200, request);
 	}
 
 }

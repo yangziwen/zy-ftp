@@ -8,7 +8,6 @@ import io.github.yangziwen.zyftp.common.FtpReply;
 import io.github.yangziwen.zyftp.server.FtpRequest;
 import io.github.yangziwen.zyftp.server.FtpResponse;
 import io.github.yangziwen.zyftp.server.FtpSession;
-import io.github.yangziwen.zyftp.util.ResponseMessageVariableReplacer;
 import io.netty.util.concurrent.Promise;
 
 public interface Command {
@@ -18,6 +17,14 @@ public interface Command {
 	String[] NON_AUTHENTICATED_COMMANDS = {"USER", "PASS", "AUTH", "QUIT", "PROT", "PBSZ" };
 
 	FtpResponse execute(FtpSession session, FtpRequest request);
+
+	default String name() {
+		return this.getClass().getSimpleName();
+	}
+
+	default String nameWithSuffix(String suffix) {
+		return name() + "." + suffix;
+	}
 
 	default Promise<FtpResponse> executeAsync(FtpSession session, FtpRequest request) {
 		log.info("session[{}] receive request [{}]", session, request);
@@ -30,23 +37,17 @@ public interface Command {
 		return ArrayUtils.contains(NON_AUTHENTICATED_COMMANDS, getClass().getSimpleName());
 	}
 
+	default FtpResponse createResponse(FtpReply reply, FtpRequest request) {
+		return Command.createResponse(reply, name().replaceAll("_", "."), request);
+	}
+
 	static FtpResponse createResponse(FtpReply reply, FtpSession session) {
-		return createResponse(reply, null, session);
+		return createResponse(reply, "", new FtpRequest(session));
 	}
 
-	static FtpResponse createResponse(FtpReply reply, String subId, FtpSession session) {
-		return createResponse(reply, subId, null, session);
-	}
-
-	static FtpResponse createResponse(FtpReply reply, String subId, FtpRequest request, FtpSession session) {
-		return createResponse(reply, subId, request, session, null);
-	}
-
-	static FtpResponse createResponse(FtpReply reply, String subId, FtpRequest request, FtpSession session, String basicMsg) {
-		String message = session.getServerContext().getMessageResource().getMessage(reply.getCode(), subId);
-		FtpResponse response = new FtpResponse(reply.getCode(), message);
-		response.setBasicMsg(basicMsg);
-		return ResponseMessageVariableReplacer.replaceVariables(reply.getCode(), subId, request, response, session);
+	static FtpResponse createResponse(FtpReply reply, String subId, FtpRequest request) {
+		String message = request.getSession().getServerContext().getMessageManager().render(reply.getMessageKey(subId), request);
+		return new FtpResponse(reply.getCode(), message);
 	}
 
 }

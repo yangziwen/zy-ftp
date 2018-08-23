@@ -19,44 +19,49 @@ public class USER implements Command {
 
 		String username = request.getArgument();
 		if (StringUtils.isBlank(username)) {
-			return createFailedResponse(FtpReply.REPLY_501, "USER", request, session);
+			return createFailedResponse(FtpReply.REPLY_501, request);
 		}
 
 		if (session.isLoggedIn()) {
 			User user = session.getUser();
 			if (user == null || !username.equals(user.getUsername()) || user.isEnabled()) {
-				return createFailedResponse(FtpReply.REPLY_530, "USER.invalid", request, session);
+				return createFailedResponse(FtpReply.REPLY_530, nameWithSuffix("invalid"), request);
 			}
 			if (username.equals(user.getUsername())) {
-				return Command.createResponse(FtpReply.REPLY_230, "USER", request, session);
+				return createResponse(FtpReply.REPLY_230, request);
 			}
 		}
 
 		FtpUserConfig userConfig = session.getUserConfig(username);
 		if (userConfig == null || !userConfig.isEnabled()) {
 			log.warn("user[{}] does not exist", username);
-			return createFailedResponse(FtpReply.REPLY_530, "USER.invalid", request, session);
+			return createFailedResponse(FtpReply.REPLY_530, nameWithSuffix("invalid"), request);
 		}
 
 		if (FtpSession.getLoggedInUserTotalCount() >= session.getServerConfig().getMaxLogins()) {
 			log.warn("too many logins of users");
-			return createFailedResponse(FtpReply.REPLY_421, "USER.login", request, session);
+			return createFailedResponse(FtpReply.REPLY_421, nameWithSuffix("login"), request);
 		}
 
 		if (FtpSession.getLoggedInUserCount(username) >= userConfig.getMaxLogins()) {
 			log.warn("too many logins of user[{}]", username);
-			return createFailedResponse(FtpReply.REPLY_421, "USER.login", request, session);
+			return createFailedResponse(FtpReply.REPLY_421, nameWithSuffix("login"), request);
 		}
 
 		session.preLogin(username);
 
-		return Command.createResponse(FtpReply.REPLY_331, "USER", request, session);
+		return createResponse(FtpReply.REPLY_331, request);
 	}
 
-	private FtpResponse createFailedResponse(FtpReply reply, String subId, FtpRequest request, FtpSession session) {
-		return Command.createResponse(reply, subId, request, session).flushedPromise(session.newChannelPromise().addListener(future -> {
-			session.getChannel().close();
+	private FtpResponse createFailedResponse(FtpReply reply, String subId, FtpRequest request) {
+		return Command.createResponse(reply, subId, request)
+				.flushedPromise(request.getSession().newChannelPromise().addListener(future -> {
+			request.getSession().getChannel().close();
 		}));
+	}
+
+	private FtpResponse createFailedResponse(FtpReply reply, FtpRequest request) {
+		return createFailedResponse(reply, name(), request);
 	}
 
 }

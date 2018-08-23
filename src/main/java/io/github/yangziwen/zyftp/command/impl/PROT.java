@@ -11,17 +11,17 @@ public class PROT implements Command {
 	@Override
 	public FtpResponse execute(FtpSession session, FtpRequest request) {
 		if (!request.hasArgument()) {
-			return Command.createResponse(FtpReply.REPLY_501, "PROT", session);
+			return createResponse(FtpReply.REPLY_501, request);
 		}
 		String procType = request.getArgument();
 		if ("C".equals(procType)) {
 			session.setDataConnectionSecured(false);
-			return Command.createResponse(FtpReply.REPLY_200, "PROT", session);
+			return createResponse(FtpReply.REPLY_200, request);
 		} else if ("P".equals(procType)) {
 			session.setDataConnectionSecured(true);
-			return Command.createResponse(FtpReply.REPLY_200, "PROT", session);
+			return createResponse(FtpReply.REPLY_200, request);
 		}
-		return Command.createResponse(FtpReply.REPLY_504, "PROT", session);
+		return createResponse(FtpReply.REPLY_504, request);
 	}
 
 }

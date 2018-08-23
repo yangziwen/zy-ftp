@@ -12,7 +12,7 @@ public class PWD implements Command {
 	@Override
 	public FtpResponse execute(FtpSession session, FtpRequest request) {
 		FileView file = session.getFileSystemView().getCurrentDirectory();
-		return Command.createResponse(FtpReply.REPLY_257, "PWD", request, session, file.getVirtualPath());
+		return createResponse(FtpReply.REPLY_257, request.attr("curPath", file.getVirtualPath()));
 	}
 
 }

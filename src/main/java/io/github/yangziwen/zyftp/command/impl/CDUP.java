@@ -16,9 +16,9 @@ public class CDUP implements Command {
 
 		if (success) {
 			FileView currentDirectory = session.getFileSystemView().getCurrentDirectory();
-			return Command.createResponse(FtpReply.REPLY_250, "CDUP", request, session, currentDirectory.getVirtualPath());
+			return createResponse(FtpReply.REPLY_250, request.attr("newPath", currentDirectory.getVirtualPath()));
 		} else {
-			return Command.createResponse(FtpReply.REPLY_550, "CDUP", session);
+			return createResponse(FtpReply.REPLY_550, request);
 		}
 	}
 

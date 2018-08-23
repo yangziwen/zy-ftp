@@ -12,20 +12,18 @@ public class HELP implements Command {
 
 	@Override
 	public FtpResponse execute(FtpSession session, FtpRequest request) {
-
 		if (request.hasArgument()) {
 
 			String cmd = request.getArgument().toUpperCase();
 
-			FtpResponse response = Command.createResponse(FtpReply.REPLY_214, cmd, request, session);
+			FtpResponse response = Command.createResponse(FtpReply.REPLY_214, cmd, request);
 
 			if (!StringUtils.isBlank(response.getMessage())) {
 				return response;
 			}
 
 		}
-
-		return Command.createResponse(FtpReply.REPLY_214, session);
+		return createResponse(FtpReply.REPLY_214, request);
 	}
 
 }

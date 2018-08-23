@@ -12,16 +12,16 @@ public class SIZE implements Command {
 	@Override
 	public FtpResponse execute(FtpSession session, FtpRequest request) {
 		if (!request.hasArgument()) {
-			return Command.createResponse(FtpReply.REPLY_501, "SIZE", session);
+			return createResponse(FtpReply.REPLY_501, request);
 		}
 		FileView file = session.getFileSystemView().getFile(request.getArgument());
 		if (file == null || !file.doesExist()) {
-			return Command.createResponse(FtpReply.REPLY_550, "SIZE.missing", session);
+			return Command.createResponse(FtpReply.REPLY_550, nameWithSuffix("missing"), request);
 		}
 		if (!file.isFile()) {
-			return Command.createResponse(FtpReply.REPLY_550, "SIZE.invalid", session);
+			return Command.createResponse(FtpReply.REPLY_550, nameWithSuffix("invalid"), request);
 		}
-		return Command.createResponse(FtpReply.REPLY_213, "SIZE", request, session, String.valueOf(file.getSize()));
+		return createResponse(FtpReply.REPLY_213, request.attr("size", file.getSize()));
 	}
 
 }

@@ -30,9 +30,9 @@ public class LIST implements Command {
 	@Override
 	public FtpResponse execute(FtpSession session, FtpRequest request) {
 		if (!session.isLatestDataConnectionReady()) {
-			return Command.createResponse(FtpReply.REPLY_503, null, request, session, "PORT or PASV must be issued first");
+			return new FtpResponse(FtpReply.REPLY_503.getCode(), "PORT or PASV must be issued first");
 		}
-		FtpResponse response = Command.createResponse(FtpReply.REPLY_150, "LIST", session);
+		FtpResponse response = createResponse(FtpReply.REPLY_150, request);
 		response.setFlushedPromise(session.newChannelPromise().addListener(f -> {
 			doSendFileList(session, request);
 		}));
@@ -58,17 +58,17 @@ public class LIST implements Command {
 			promise.addListener(f1 -> {
 				if (!promise.isSuccess()) {
 					log.error("failed to send list data", promise.cause());
-					FtpServerHandler.sendResponse(Command.createResponse(FtpReply.REPLY_551, "LIST", session), session.getContext());
+					FtpServerHandler.sendResponse(createResponse(FtpReply.REPLY_551, request), session.getContext());
 					dataConnection.close();
 					return;
 				}
-				FtpServerHandler.sendResponse(Command.createResponse(FtpReply.REPLY_226, "LIST", session), session.getContext())
+				FtpServerHandler.sendResponse(createResponse(FtpReply.REPLY_226, request), session.getContext())
 					.addListener(f2 -> dataConnection.close());
 			});
 		} catch (IOException e) {
 			log.error("failed to get the file list in directory of {}",
 					session.getFileSystemView().getCurrentDirectory().getVirtualPath(), e);
-			FtpServerHandler.sendResponse(Command.createResponse(FtpReply.REPLY_425, "LIST", session), session.getContext());
+			FtpServerHandler.sendResponse(createResponse(FtpReply.REPLY_425, request), session.getContext());
 		}
 	}
 

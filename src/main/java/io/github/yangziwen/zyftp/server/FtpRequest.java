@@ -1,8 +1,10 @@
 package io.github.yangziwen.zyftp.server;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.apache.commons.lang3.StringUtils;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -12,13 +14,26 @@ import lombok.NoArgsConstructor;
  * @author yangziwen
  */
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
 public class FtpRequest {
 
 	private String command;
 
 	private String argument;
+
+	private FtpSession session;
+
+	private Map<String, Object> attr = new HashMap<>();
+
+	public FtpRequest() {}
+
+	public FtpRequest(FtpSession session) {
+		this.session = session;
+	}
+
+	public FtpRequest(String command, String argument) {
+		this.command = command;
+		this.argument = argument;
+	}
 
 	public String getRequestLine() {
 		return command + " " + argument;
@@ -26,6 +41,16 @@ public class FtpRequest {
 
 	public boolean hasArgument() {
 		return StringUtils.isNotBlank(argument);
+	}
+
+	@SuppressWarnings("unchecked")
+	public <T> T attr(String key) {
+		return (T) attr.get(key);
+	}
+
+	public FtpRequest attr(String key, Object value) {
+		attr.put(key, value);
+		return this;
 	}
 
 	@Override

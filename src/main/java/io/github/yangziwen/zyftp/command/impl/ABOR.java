@@ -21,7 +21,7 @@ public class ABOR implements Command {
 		log.info("session[{}] receive request [{}]", session, request);
 		Promise<FtpResponse> promise = session.newPromise();
 		session.closeDataConnections().addListener(f -> {
-			FtpResponse response = Command.createResponse(FtpReply.REPLY_226, "ABOR", session);
+			FtpResponse response = createResponse(FtpReply.REPLY_226, request);
 			promise.setSuccess(response);
 		});
 		return promise;

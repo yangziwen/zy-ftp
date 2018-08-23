@@ -14,19 +14,22 @@ public class APPE implements Command {
 	@Override
 	public FtpResponse execute(FtpSession session, FtpRequest request) {
 		if (!request.hasArgument()) {
-			return Command.createResponse(FtpReply.REPLY_501, "APPE", session);
+			return createResponse(FtpReply.REPLY_501, request);
 		}
 
 		FileView file = session.getFileSystemView().getFile(request.getArgument());
 		if (file == null) {
-			return Command.createResponse(FtpReply.REPLY_550, "APPE", session);
+			return createResponse(FtpReply.REPLY_550, request);
+		}
+		if (!session.isWriteAllowed(file)) {
+			return Command.createResponse(FtpReply.REPLY_550, nameWithSuffix("permission"), request);
 		}
 		if (file.doesExist() && !file.isFile()) {
-			return Command.createResponse(FtpReply.REPLY_550, "APPE.invalid", session);
+			return Command.createResponse(FtpReply.REPLY_550, nameWithSuffix("invalid"), request);
 		}
 
 		if (!session.isLatestDataConnectionReady()) {
-			return Command.createResponse(FtpReply.REPLY_425, "APPE", session);
+			return createResponse(FtpReply.REPLY_425, request);
 		}
 
 		if (file.getSize() > 0) {
@@ -34,16 +37,16 @@ public class APPE implements Command {
 			((AppeState) session.getCommandState()).putRequest(restRequest);
 		}
 
-		FtpResponse response = Command.createResponse(FtpReply.REPLY_150, "APPE", session);
+		FtpResponse response = createResponse(FtpReply.REPLY_150, request);
 		response.setFlushedPromise(session.newChannelPromise().addListener(f -> {
-			doReceiveFileContent(session, request, file);
+			doReceiveFileContent(request, file);
 		}));
 		return response;
 	}
 
-	private void doReceiveFileContent(FtpSession session, FtpRequest request, FileView file) {
-		session.getLatestDataConnection().getCloseFuture().addListener(f -> {
-			FtpServerHandler.sendResponse(Command.createResponse(FtpReply.REPLY_226, "APPE", session), session.getContext());
+	private void doReceiveFileContent(FtpRequest request, FileView file) {
+		request.getSession().getLatestDataConnection().getCloseFuture().addListener(f -> {
+			FtpServerHandler.sendResponse(createResponse(FtpReply.REPLY_226, request), request.getSession().getContext());
 		});
 	}
 

@@ -17,16 +17,16 @@ public class CWD implements Command {
 		String path = StringUtils.defaultString(request.getArgument(), "/");
 
 		if (!session.isReadAllowed(path)) {
-			return Command.createResponse(FtpReply.REPLY_550, "CWD", session);
+			return createResponse(FtpReply.REPLY_550, request);
 		}
 
 		boolean success = session.getFileSystemView().changeCurrentDirectory(path);
 
 		if (success) {
 			FileView currentDirectory = session.getFileSystemView().getCurrentDirectory();
-			return Command.createResponse(FtpReply.REPLY_250, "CWD", request, session, currentDirectory.getVirtualPath());
+			return createResponse(FtpReply.REPLY_250, request.attr("curPath", currentDirectory.getVirtualPath()));
 		} else {
-			return Command.createResponse(FtpReply.REPLY_550, "CWD", session);
+			return createResponse(FtpReply.REPLY_550, request);
 		}
 	}
 

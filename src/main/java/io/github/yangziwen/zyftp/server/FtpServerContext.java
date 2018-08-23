@@ -4,7 +4,7 @@ import java.io.File;
 
 import io.github.yangziwen.zyftp.config.FtpServerConfig;
 import io.github.yangziwen.zyftp.filesystem.FileSystemManager;
-import io.github.yangziwen.zyftp.message.MessageResource;
+import io.github.yangziwen.zyftp.message.MessageManager;
 import io.github.yangziwen.zyftp.user.UserManager;
 import io.github.yangziwen.zyftp.util.PassivePorts;
 import lombok.Getter;
@@ -25,13 +25,13 @@ public class FtpServerContext {
 
 	private FileSystemManager fileSystemManager;
 
-	private MessageResource messageResource;
+	private MessageManager messageManager;
 
 	private PassivePorts passivePorts;
 
 	public FtpServerContext(File configFile) {
 		this.serverConfig = FtpServerConfig.loadConfig(configFile);
-		this.messageResource = new MessageResource();
+		this.messageManager = new MessageManager();
 		this.passivePorts = new PassivePorts(serverConfig.getPassivePortsString());
 	}
 

@@ -10,7 +10,7 @@ public class PBSZ implements Command {
 
 	@Override
 	public FtpResponse execute(FtpSession session, FtpRequest request) {
-		return Command.createResponse(FtpReply.REPLY_200, "PBSZ", session);
+		return createResponse(FtpReply.REPLY_200, request);
 	}
 
 }

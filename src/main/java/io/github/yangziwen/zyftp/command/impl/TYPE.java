@@ -12,13 +12,13 @@ public class TYPE implements Command {
 	@Override
 	public FtpResponse execute(FtpSession session, FtpRequest request) {
 		if (!request.hasArgument()) {
-			return Command.createResponse(FtpReply.REPLY_501, "TYPE", session);
+			return createResponse(FtpReply.REPLY_501, request);
 		}
 		try {
 			session.setDataType(DataType.from(request.getArgument().substring(0, 1)));
-			return Command.createResponse(FtpReply.REPLY_200, "TYPE", session);
+			return createResponse(FtpReply.REPLY_200, request);
 		} catch (Exception e) {
-			return Command.createResponse(FtpReply.REPLY_504, "TYPE", request, session);
+			return createResponse(FtpReply.REPLY_504, request);
 		}
 	}
 

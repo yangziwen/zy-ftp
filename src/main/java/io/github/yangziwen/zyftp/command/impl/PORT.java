@@ -18,17 +18,17 @@ public class PORT implements Command {
 	@Override
 	public FtpResponse execute(FtpSession session, FtpRequest request) {
 		if (!request.hasArgument()) {
-			return Command.createResponse(FtpReply.REPLY_501, "PORT", session);
+			return createResponse(FtpReply.REPLY_501, request);
 		}
 		InetSocketAddress address = null;
 		try {
 			address = decode(request.getArgument());
 		} catch (Exception e) {
-			return Command.createResponse(FtpReply.REPLY_501, "PORT", session);
+			return createResponse(FtpReply.REPLY_501, request);
 		}
 		session.addPortDataClient(new FtpPortDataClient(session, address));
 		session.setDataConnectionType(DataConnectionType.PORT);
-		return Command.createResponse(FtpReply.REPLY_200, "PORT", session);
+		return createResponse(FtpReply.REPLY_200, request);
 	}
 
 	public static InetSocketAddress decode(String str)

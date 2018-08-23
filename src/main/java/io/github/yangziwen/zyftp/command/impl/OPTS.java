@@ -22,12 +22,12 @@ public class OPTS implements Command {
 	@Override
 	public FtpResponse execute(FtpSession session, FtpRequest request) {
 		if (StringUtils.isBlank(request.getArgument())) {
-			return Command.createResponse(FtpReply.REPLY_501, "OPTS", session);
+			return createResponse(FtpReply.REPLY_501, request);
 		}
 		String subCmd = request.getArgument().split("\\s", 2)[0];
-		Command command = SUB_COMMANDS.get("OPTS_" + subCmd);
+		Command command = SUB_COMMANDS.get(name() + "_" + subCmd);
 		if (command == null) {
-			return Command.createResponse(FtpReply.REPLY_502, "OPTS.not.implemented", session);
+			return createResponse(FtpReply.REPLY_502, request);
 		}
 		return command.execute(session, request);
 	}
