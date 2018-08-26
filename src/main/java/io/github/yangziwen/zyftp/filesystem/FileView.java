@@ -20,8 +20,6 @@ import io.github.yangziwen.zyftp.user.User;
  */
 public class FileView {
 
-	public static final String DEFAULT_HOME_DIRECTORY = "res/";
-
 	private User user;
 
 	private File file;

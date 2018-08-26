@@ -56,6 +56,11 @@ public class Main {
 
 		Logger logger = LoggerFactory.getLogger(this.getClass());
 
+		if (!configFile.isFile()) {
+			logger.error("configFile[{}] does not exist!", configFile.getCanonicalPath());
+			System.exit(1);
+		}
+
 		logger.info("use {} as the config file", configFile.getCanonicalPath());
 
 		logger.info("the log file position is {}", logFile.getCanonicalPath());

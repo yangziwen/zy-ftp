@@ -17,7 +17,6 @@ import org.apache.commons.lang3.StringUtils;
 import com.typesafe.config.Config;
 
 import io.github.yangziwen.zyftp.config.FtpUserConfig.Permission.Type;
-import io.github.yangziwen.zyftp.filesystem.FileView;
 import lombok.Data;
 import lombok.Getter;
 
@@ -58,7 +57,7 @@ public class FtpUserConfig {
 
 			config.setUsername(userConfig.getString("username"));
 			config.setEncryptedPassword(getStringOrDefault(userConfig, "encrypted-password", ""));
-			String homeDirectoryPath = getStringOrDefault(userConfig, "home-directory", FileView.DEFAULT_HOME_DIRECTORY);
+			String homeDirectoryPath = getStringOrDefault(userConfig, "home-directory", serverConfig.getDefaultHomeDirectory());
 			config.setHomeDirectory(new File(homeDirectoryPath).getAbsolutePath());
 			config.setEnabled(getBooleanOrDefault(userConfig, "enabled", false));
 			config.setMaxLogins(getIntOrDefault(userConfig, "max-logins", DEFAULT_MAX_LOGINS));

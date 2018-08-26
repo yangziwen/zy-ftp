@@ -45,6 +45,8 @@ public class FtpServerConfig {
 
 	private static final long DEFAULT_DOWNLOAD_BYTES_PER_SECOND = 500 * 1024L;
 
+	private static final String DEFAULT_HOME_DIRECTORY = "res/";
+
 	private SocketAddress localAddress;
 
 	private int maxLogins;
@@ -64,6 +66,8 @@ public class FtpServerConfig {
 	private long defaultUploadBytesPerSecond;
 
 	private long defaultDownloadBytesPerSecond;
+
+	private String defaultHomeDirectory;
 
 	private ConcurrentMap<String, FtpUserConfig> userConfigs = new ConcurrentHashMap<>();
 
@@ -100,6 +104,16 @@ public class FtpServerConfig {
 				getString(connectionConfig, "default-upload-bytes-per-second"), DEFAULT_UPLOAD_BYTES_PER_SECOND));
 		config.setDefaultDownloadBytesPerSecond(parseBytes(
 				getString(connectionConfig, "default-download-bytes-per-second"), DEFAULT_DOWNLOAD_BYTES_PER_SECOND));
+
+		config.setDefaultHomeDirectory(getStringOrDefault(serverConfig, "default-home-directory", DEFAULT_HOME_DIRECTORY));
+		File defaultHomeDir = new File(config.getDefaultHomeDirectory());
+		if (defaultHomeDir.isFile()) {
+			throw new IllegalStateException(String.format(
+					"the specified home directory [%s] should not be a file", config.getDefaultHomeDirectory()));
+		}
+		if (!defaultHomeDir.exists()) {
+			defaultHomeDir.mkdirs();
+		}
 
 		for (FtpUserConfig userConfig : FtpUserConfig.loadConfig(globalConfig, config)) {
 			config.userConfigs.put(userConfig.getUsername(), userConfig);
