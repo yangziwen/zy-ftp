@@ -7,4 +7,5 @@ target/
 .settings/
 .mymetadata
 *.class
+*.log
 RemoteSystemsTempFiles/

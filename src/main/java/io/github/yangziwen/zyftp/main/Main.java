@@ -2,6 +2,9 @@ package io.github.yangziwen.zyftp.main;
 
 import java.io.File;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 
@@ -17,15 +20,23 @@ public class Main {
 
 	@Parameter(
 			names = {"-c", "--config"},
-			description = "specify the config file",
+			description = "specify the config file position",
 			required = false)
 	private File configFile = new File("conf/server.config");
+
+	@Parameter(
+			names = {"-l", "--log"},
+			description = "specify the log file position",
+			required = false)
+	private File logFile = new File("log/zy-ftp.log");
 
 	private Main() {}
 
 	public static void main(String[] args) throws Exception {
 
 		Main main = new Main();
+
+		System.setProperty("zy-ftp.log", main.logFile.getCanonicalPath());
 
 		JCommander commander = JCommander.newBuilder()
 				.addObject(main)
@@ -43,13 +54,17 @@ public class Main {
 
 	public void run() throws Exception {
 
-		System.out.println("use " + configFile.getCanonicalPath() + " as the config file");
+		Logger logger = LoggerFactory.getLogger(this.getClass());
+
+		logger.info("use {} as the config file", configFile.getCanonicalPath());
+
+		logger.info("the log file position is {}", logFile.getCanonicalPath());
 
 		FtpServer server = new FtpServer(new FtpServerContext(configFile));
 
 		server.start();
 
-		System.out.println("FtpServer started");
+		logger.info("FtpServer started");
 
 		addShutdownHook(server);
 	}

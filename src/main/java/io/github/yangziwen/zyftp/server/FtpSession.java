@@ -285,7 +285,6 @@ public class FtpSession {
 		int count = counter.get();
 		while (count < ceil) {
 			if (counter.compareAndSet(count, count + 1)) {
-				log.info("increased to " + counter.get());
 				return true;
 			}
 			count = counter.get();
