@@ -6,6 +6,7 @@ target/
 .classpath
 .settings/
 .mymetadata
+.gradle
 *.class
 *.log
 RemoteSystemsTempFiles/

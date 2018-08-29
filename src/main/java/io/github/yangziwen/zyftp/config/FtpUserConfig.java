@@ -18,7 +18,6 @@ import com.typesafe.config.Config;
 
 import io.github.yangziwen.zyftp.config.FtpUserConfig.Permission.Type;
 import lombok.Data;
-import lombok.Getter;
 
 @Data
 public class FtpUserConfig {
@@ -133,7 +132,6 @@ public class FtpUserConfig {
 		return DigestUtils.sha1Hex(username + password).equals(encryptedPassword);
 	}
 
-	@Getter
 	public static class Permission {
 
 		private String pattern;
@@ -150,6 +148,14 @@ public class FtpUserConfig {
 
 		public boolean isMatched(String path) {
 			return regexPattern.matcher(path).matches();
+		}
+
+		public String getPattern() {
+			return pattern;
+		}
+
+		public Type getType() {
+			return type;
 		}
 
 		public static enum Type {
