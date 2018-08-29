@@ -76,6 +76,11 @@ public class FtpServer {
 		} catch (InterruptedException e) {
 			log.error("failed to shutdown the boss event loop group", e);
 		}
+		try {
+			this.serverContext.getPassivePorts().destroy().sync();
+		} catch (InterruptedException e) {
+			log.error("failed to destroy the PassivePorts instance");
+		}
 		log.info("ftp server is stopped");
 	}
 

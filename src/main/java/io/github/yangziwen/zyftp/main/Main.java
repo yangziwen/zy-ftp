@@ -2,6 +2,7 @@ package io.github.yangziwen.zyftp.main;
 
 import java.io.File;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,6 +30,18 @@ public class Main {
 			description = "specify the log file position",
 			required = false)
 	private File logFile = new File("log/zy-ftp.log");
+
+	@Parameter(
+			names = {"--passive-address"},
+			description = "specify the passive address",
+			required = false)
+	private String passiveAddress;
+
+	@Parameter(
+			names = {"--passive-ports"},
+			description = "specify the passive ports",
+			required = false)
+	private String passivePorts;
 
 	private Main() {}
 
@@ -65,7 +78,17 @@ public class Main {
 
 		logger.info("the log file position is {}", logFile.getCanonicalPath());
 
-		FtpServer server = new FtpServer(new FtpServerContext(configFile));
+		FtpServerContext context = new FtpServerContext(configFile);
+
+		if (StringUtils.isNotBlank(passiveAddress)) {
+			context.getServerConfig().setPassiveAddress(passiveAddress);
+		}
+		if (StringUtils.isNotBlank(passivePorts)) {
+			context.getServerConfig().setPassivePortsString(passivePorts);
+			context.refresh();
+		}
+
+		FtpServer server = new FtpServer(context);
 
 		server.start();
 

@@ -8,12 +8,14 @@ import io.github.yangziwen.zyftp.message.MessageManager;
 import io.github.yangziwen.zyftp.user.UserManager;
 import io.github.yangziwen.zyftp.util.PassivePorts;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * The ftp server context
  *
  * @author yangziwen
  */
+@Slf4j
 @Getter
 public class FtpServerContext {
 
@@ -33,6 +35,18 @@ public class FtpServerContext {
 		this.serverConfig = FtpServerConfig.loadConfig(configFile);
 		this.messageManager = new MessageManager();
 		this.passivePorts = new PassivePorts(serverConfig.getPassivePortsString());
+	}
+
+	public FtpServerContext refresh() {
+		if (passivePorts != null) {
+			passivePorts.destroy().addListener(f -> {
+				if (!f.isSuccess()) {
+					log.error("failed to destroy the PassivePorts instance", f.cause());
+				}
+			});
+		}
+		this.passivePorts = new PassivePorts(serverConfig.getPassivePortsString());
+		return this;
 	}
 
 	public void setServer(FtpServer server) {

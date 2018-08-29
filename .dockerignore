@@ -1,13 +1,10 @@
 .DS_Store
 .metadata/
 res/
-target/
-build/
 .project
 .classpath
 .settings/
 .mymetadata
-.gradle
 *.class
 *.log
 RemoteSystemsTempFiles/

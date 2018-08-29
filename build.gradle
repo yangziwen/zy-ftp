@@ -32,3 +32,11 @@ jar {
 		configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
 	}
 }
+
+task copyJar(type: Copy, dependsOn: build) {
+	from "$buildDir/libs/zy-ftp-${version}.jar"
+	into "$projectDir/target"
+	rename("zy-ftp-${version}.jar", "zy-ftp.jar")
+}
+
+build.finalizedBy copyJar
