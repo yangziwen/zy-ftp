@@ -1,6 +1,7 @@
 package io.github.yangziwen.zyftp.main;
 
 import java.io.File;
+import java.net.InetSocketAddress;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -30,6 +31,18 @@ public class Main {
 			description = "specify the log file position",
 			required = false)
 	private File logFile = new File("log/zy-ftp.log");
+
+	@Parameter(
+			names = {"--local-ip"},
+			description = "specify the local ip",
+			required = false)
+	private String localIp;
+
+	@Parameter(
+			names = {"--local-port"},
+			description = "specify the local port",
+			required = false)
+	private Integer localPort;
 
 	@Parameter(
 			names = {"--passive-address"},
@@ -80,6 +93,15 @@ public class Main {
 
 		FtpServerContext context = new FtpServerContext(configFile);
 
+		InetSocketAddress address = context.getServerConfig().getLocalAddress();
+		if (StringUtils.isNotBlank(localIp) && !localIp.equals(address.getHostString())) {
+			address = new InetSocketAddress(localIp, address.getPort());
+			context.getServerConfig().setLocalAddress(address);
+		}
+		if (localPort != null && !localPort.equals(address.getPort())) {
+			address = new InetSocketAddress(address.getHostString(), localPort);
+			context.getServerConfig().setLocalAddress(address);
+		}
 		if (StringUtils.isNotBlank(passiveAddress)) {
 			context.getServerConfig().setPassiveAddress(passiveAddress);
 		}

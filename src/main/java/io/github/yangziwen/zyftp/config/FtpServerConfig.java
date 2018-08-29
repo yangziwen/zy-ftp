@@ -8,7 +8,6 @@ import static io.github.yangziwen.zyftp.util.ConfigUtil.parseBytes;
 
 import java.io.File;
 import java.net.InetSocketAddress;
-import java.net.SocketAddress;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -47,7 +46,7 @@ public class FtpServerConfig {
 
 	private static final String DEFAULT_HOME_DIRECTORY = "res/";
 
-	private SocketAddress localAddress;
+	private InetSocketAddress localAddress;
 
 	private int maxLogins;
 
