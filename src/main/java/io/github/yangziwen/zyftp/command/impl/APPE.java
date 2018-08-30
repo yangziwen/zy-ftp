@@ -39,13 +39,14 @@ public class APPE implements Command {
 
 		FtpResponse response = createResponse(FtpReply.REPLY_150, request);
 		response.setFlushedPromise(session.newChannelPromise().addListener(f -> {
-			doReceiveFileContent(request, file);
+			doReceiveFileContent(session, request, file);
 		}));
 		return response;
 	}
 
-	private void doReceiveFileContent(FtpRequest request, FileView file) {
+	private void doReceiveFileContent(FtpSession session, FtpRequest request, FileView file) {
 		request.getSession().getLatestDataConnection().getCloseFuture().addListener(f -> {
+			session.decreaseUploadConnections();
 			FtpServerHandler.sendResponse(createResponse(FtpReply.REPLY_226, request), request.getSession().getContext());
 		});
 	}

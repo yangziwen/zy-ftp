@@ -5,7 +5,7 @@
 
 	<groupId>io.github.yangziwen</groupId>
 	<artifactId>zy-ftp</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.0.1</version>
 	<packaging>jar</packaging>
 
 	<name>zy-ftp</name>
@@ -126,6 +126,16 @@
 						</goals>
 					</execution>
 				</executions>
+			</plugin>
+			<plugin>
+				<groupId>com.spotify</groupId>
+				<artifactId>dockerfile-maven-plugin</artifactId>
+				<version>1.4.0</version>
+				<configuration>
+					<repository>${project.name}</repository>
+					<tag>${project.version}</tag>
+					<skipPush>true</skipPush>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>
