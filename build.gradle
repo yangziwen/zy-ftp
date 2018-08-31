@@ -1,4 +1,7 @@
-apply plugin: "java"
+plugins {
+	id "java"
+	id "org.sglahn.gradle-dockerfile-plugin" version "0.5"
+}
 
 repositories {
 	mavenCentral()
@@ -39,4 +42,9 @@ task copyJar(type: Copy, dependsOn: build) {
 	rename("zy-ftp-${version}.jar", "zy-ftp.jar")
 }
 
+docker {
+	tags = [version]
+}
+
 build.finalizedBy copyJar
+dockerBuild.dependsOn copyJar
