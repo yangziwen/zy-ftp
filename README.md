@@ -26,3 +26,4 @@
       zy-ftp:0.0.1
     ```
 * 查看启动参数：`java -jar zy-ftp.jar -h`
+* 可通过设置系统变量进行连接泄露检测，如`-Dio.netty.leakDetectionLevel=ADVANCED`
