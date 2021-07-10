@@ -5,7 +5,7 @@
 
 	<groupId>io.github.yangziwen</groupId>
 	<artifactId>zy-ftp</artifactId>
-	<version>0.0.2-SNAPSHOT</version>
+	<version>0.0.2</version>
 	<packaging>jar</packaging>
 
 	<name>zy-ftp</name>
