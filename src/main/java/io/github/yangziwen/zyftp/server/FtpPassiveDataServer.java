@@ -24,6 +24,7 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.stream.ChunkedWriteHandler;
 import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.handler.traffic.ChannelTrafficShapingHandler;
+import io.netty.util.ReferenceCountUtil;
 import io.netty.util.concurrent.Promise;
 import lombok.extern.slf4j.Slf4j;
 
@@ -203,8 +204,12 @@ public class FtpPassiveDataServer implements FtpDataConnection {
 			}
 			ByteBuf buffer = (ByteBuf) msg;
 			int length = 0;
-			while ((length = buffer.readableBytes()) > 0) {
-				buffer.readBytes(uploadFileInfo.getFileChannel(), uploadFileInfo.getAndAddOffset(length), length);
+			try {
+			    while ((length = buffer.readableBytes()) > 0) {
+			        buffer.readBytes(uploadFileInfo.getFileChannel(), uploadFileInfo.getAndAddOffset(length), length);
+			    }
+			} finally {
+			    ReferenceCountUtil.release(buffer);
 			}
 		}
 
