@@ -38,7 +38,7 @@ public class PassivePorts {
 	public PassivePorts(Set<Integer> passivePorts) {
 		if (passivePorts == null) {
 			throw new NullPointerException("passivePorts can not be null");
-		} else if(passivePorts.isEmpty()) {
+		} else if (passivePorts.isEmpty()) {
 			passivePorts = new HashSet<Integer>();
 			passivePorts.add(0);
 		}

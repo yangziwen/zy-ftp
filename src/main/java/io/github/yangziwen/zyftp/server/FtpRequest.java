@@ -30,7 +30,7 @@ public class FtpRequest {
 	}
 
 	public FtpRequest(String command, String argument) {
-		this.command = command;
+		this.command = command.toUpperCase();
 		this.argument = argument;
 	}
 
