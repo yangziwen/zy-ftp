@@ -78,6 +78,10 @@ public class Main {
 		main.run();
 	}
 
+	/**
+	 * 启动时可通过设置`-Dio.netty.leakDetectionLevel=advanced`来输出ByteBuff泄漏信息
+	 * @throws Exception
+	 */
 	public void run() throws Exception {
 
 		Logger logger = LoggerFactory.getLogger(this.getClass());
