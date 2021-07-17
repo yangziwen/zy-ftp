@@ -9,11 +9,31 @@
 * 运行于docker环境时，仅支持被动模式
 
 #### 打包 & 运行
+* 内嵌在程序中运行
+    1. 引入依赖
+    ```xml
+    <dependency>
+        <groupId>io.github.yangziwen</groupId>
+        <artifactId>zy-ftp</artifactId>
+        <version>0.0.2</version>
+    </dependency>
+    ```
+    2. 编写代码
+    ```java
+    FtpRunner runner = FtpRunner.builder()
+        .localIp("127.0.0.1")
+        .localPort(8121)
+        .configFile(new File("conf/server.config"))
+        .logFile(new File("log/zy-ftp.log"))
+        .build();
+
+    runner.run();
+    ```
 * 基于jar包运行
-    1. 打包代码：`mvn package` or `gradle build`
+    1. 打包代码：`mvn package -Pstandalone` or `gradle build`
     2. 启动服务：`java -jar zy-ftp.jar -c ${config_file_path}`
 * 基于docker运行
-    1. 制作镜像：`mvn package dockerfile:build` or `gradle dockerBuild`
+    1. 制作镜像：`mvn package dockerfile:build -Pstandalone` or `gradle dockerBuild`
     2. 启动容器：
     ```
     docker run -d \
@@ -23,7 +43,7 @@
       -p 8121:8121 \
       -e PASSIVE_PORTS=40000-40060 \
       -p 40000-40060:40000-40060 \
-      zy-ftp:0.0.1
+      zy-ftp:0.0.2
     ```
 * 查看启动参数：`java -jar zy-ftp.jar -h`
 * 可通过设置系统变量进行连接泄露检测，如`-Dio.netty.leakDetectionLevel=ADVANCED`
