@@ -113,7 +113,7 @@
 					</descriptorRefs>
 					<archive>
 						<manifest>
-							<mainClass>io.github.yangziwen.zyftp.main.Main</mainClass>
+							<mainClass>io.github.yangziwen.zyftp.run.FtpRunner</mainClass>
 						</manifest>
 					</archive>
 				</configuration>
