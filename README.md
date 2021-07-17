@@ -30,10 +30,10 @@
     runner.run();
     ```
 * 基于jar包运行
-    1. 打包代码：`mvn package -Pstandalone` or `gradle build`
+    1. 打包代码：`mvn package -Pstandalone` or `sh gradlew build`
     2. 启动服务：`java -jar zy-ftp.jar -c ${config_file_path}`
 * 基于docker运行
-    1. 制作镜像：`mvn package dockerfile:build -Pstandalone` or `gradle dockerBuild`
+    1. 制作镜像：`mvn package dockerfile:build -Pstandalone` or `sh gradlew dockerBuild`
     2. 启动容器：
     ```
     docker run -d \

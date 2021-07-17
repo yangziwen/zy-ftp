@@ -29,7 +29,7 @@ dependencies {
 
 jar {
 	manifest {
-		attributes "Main-Class": "io.github.yangziwen.zyftp.main.Main"
+		attributes "Main-Class": "io.github.yangziwen.zyftp.run.FtpRunner"
 	}
 	from {
 		configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
