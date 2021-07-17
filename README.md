@@ -1,16 +1,19 @@
 ## zy-ftp
-基于netty实现的ftp服务器。
 
-#### 特性
-* 实现了ftp服务端常用的大部分命令，详情[请见代码](https://github.com/yangziwen/zy-ftp/tree/master/src/main/java/io/github/yangziwen/zyftp/command/impl)
-* 支持配置用户访问文件权限、文件传输限速等，详情[请见配置](https://github.com/yangziwen/zy-ftp/blob/master/conf/server.config)
-* 不加密的传输方式下支持主动、被动模式
-* 加密的传输方式下(FTP over TLS)，仅支持被动模式
-* 运行于docker环境时，仅支持被动模式
+[Chinese Doc](https://github.com/yangziwen/zy-ftp/blob/master/README_CN.md)
+#### Introduction
+A netty based ftp server
 
-#### 打包 & 运行
-* 内嵌在程序中运行
-    1. 引入依赖
+#### Feature
+* Implements most frequently used ftp commands ([see details](https://github.com/yangziwen/zy-ftp/tree/master/src/main/java/io/github/yangziwen/zyftp/command/impl))
+* Support configurations of user access priviledge and file transfer rate limit ([see options](https://github.com/yangziwen/zy-ftp/blob/master/conf/server.config))
+* Both active mode and passive mode are supported under cleartext transmission
+* Only passive mode is supported when transfer data over TLS
+* Only passive mode is supported when running inside a docker container
+
+#### Usage
+* Running an embedded server
+    1. Import the dependency
     ```xml
     <dependency>
         <groupId>io.github.yangziwen</groupId>
@@ -18,7 +21,7 @@
         <version>0.0.2</version>
     </dependency>
     ```
-    2. 启动服务
+    2. Start the server
     ```java
     FtpRunner runner = FtpRunner.builder()
         .localIp("127.0.0.1")
@@ -29,12 +32,12 @@
 
     runner.run();
     ```
-* 基于jar包运行
-    1. 打包代码：`mvn package -Pstandalone` or `sh gradlew build`
-    2. 启动服务：`java -jar zy-ftp.jar -c ${config_file_path}`
-* 基于docker运行
-    1. 制作镜像：`mvn package dockerfile:build -Pstandalone` or `sh gradlew dockerBuild`
-    2. 启动容器：
+* Running the JAR file standalone
+    1. Build the JAR file ：`mvn package -Pstandalone` or `sh gradlew build`
+    2. Start the server：`java -jar zy-ftp.jar -c ${config_file_path}`
+* Running inside a docker container
+    1. Build the docker image：`mvn package dockerfile:build -Pstandalone` or `sh gradlew dockerBuild`
+    2. Start the container：
     ```
     docker run -d \
       -v ${your_config_file}:/zy-ftp/server.config \
@@ -45,5 +48,4 @@
       -p 40000-40060:40000-40060 \
       zy-ftp:0.0.2
     ```
-* 查看启动参数：`java -jar zy-ftp.jar -h`
-* 可通过设置系统变量进行连接泄露检测，如`-Dio.netty.leakDetectionLevel=ADVANCED`
+* See more options：`java -jar zy-ftp.jar -h`
