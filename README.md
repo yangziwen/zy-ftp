@@ -18,7 +18,7 @@
         <version>0.0.2</version>
     </dependency>
     ```
-    2. 编写代码
+    2. 启动服务
     ```java
     FtpRunner runner = FtpRunner.builder()
         .localIp("127.0.0.1")
