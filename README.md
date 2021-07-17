@@ -1,17 +1,17 @@
 ## zy-ftp
 
 [Chinese Doc](https://github.com/yangziwen/zy-ftp/blob/master/README_CN.md)
-#### Introduction
+### Introduction
 A netty based ftp server
 
-#### Feature
+### Feature
 * Implements most frequently used ftp commands ([see details](https://github.com/yangziwen/zy-ftp/tree/master/src/main/java/io/github/yangziwen/zyftp/command/impl))
 * Support configurations of user access priviledge and file transfer rate limit ([see options](https://github.com/yangziwen/zy-ftp/blob/master/conf/server.config))
 * Both active mode and passive mode are supported under cleartext transmission
 * Only passive mode is supported when transfer data over TLS
 * Only passive mode is supported when running inside a docker container
 
-#### Usage
+### Usage
 * Running an embedded server
     1. Import the dependency
     ```xml

@@ -1,14 +1,16 @@
 ## zy-ftp
-基于netty实现的ftp服务器。
 
-#### 特性
+### 简介
+一款基于netty实现的ftp服务器。
+
+### 特性
 * 实现了ftp服务端常用的大部分命令，详情[请见代码](https://github.com/yangziwen/zy-ftp/tree/master/src/main/java/io/github/yangziwen/zyftp/command/impl)
 * 支持配置用户访问文件权限、文件传输限速等，详情[请见配置](https://github.com/yangziwen/zy-ftp/blob/master/conf/server.config)
 * 不加密的传输方式下支持主动、被动模式
 * 加密的传输方式下(FTP over TLS)，仅支持被动模式
 * 运行于docker环境时，仅支持被动模式
 
-#### 使用
+### 使用
 * 内嵌在程序中运行
     1. 引入依赖
     ```xml
