@@ -1,5 +1,7 @@
 ## zy-ftp
 
+[![Java CI with Maven](https://github.com/yangziwen/zy-ftp/actions/workflows/maven.yml/badge.svg)](https://github.com/yangziwen/zy-ftp/actions/workflows/maven.yml)
+
 [Chinese Doc](https://github.com/yangziwen/zy-ftp/blob/master/README_CN.md)
 ### Introduction
 A netty based ftp server
