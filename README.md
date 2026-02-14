@@ -51,3 +51,6 @@ A netty based ftp server
       zy-ftp:0.0.2
     ```
 * See more options：`java -jar zy-ftp.jar -h`
+
+### Client Operation
+FileZilla, ncftp, Python's ftplib module, and Java's Apache Commons Net library can be used as clients to establish connections with the server and perform operations.
