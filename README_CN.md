@@ -10,7 +10,7 @@
 * 加密的传输方式下(FTP over TLS)，仅支持被动模式
 * 运行于docker环境时，仅支持被动模式
 
-### 使用
+### 运行
 * 内嵌在程序中运行
     1. 引入依赖
     ```xml
@@ -49,3 +49,6 @@
     ```
 * 查看启动参数：`java -jar zy-ftp.jar -h`
 * 可通过设置系统变量进行连接泄露检测，如`-Dio.netty.leakDetectionLevel=ADVANCED`
+
+### 客户端操作
+* 可使用FileZilla、ncftp、Python的ftplib模块、Java的Apache Commons Net库作为客户端，与服务端建立连接并执行操作。
