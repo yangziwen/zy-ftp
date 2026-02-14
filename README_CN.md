@@ -51,4 +51,4 @@
 * 可通过设置系统变量进行连接泄露检测，如`-Dio.netty.leakDetectionLevel=ADVANCED`
 
 ### 客户端操作
-* 可使用FileZilla、ncftp、Python的ftplib模块、Java的Apache Commons Net库作为客户端，与服务端建立连接并执行操作。
+可使用FileZilla、ncftp、Python的ftplib模块、Java的Apache Commons Net库作为客户端，与服务端建立连接并执行操作。
