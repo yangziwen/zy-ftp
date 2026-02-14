@@ -17,6 +17,8 @@ public class SYST implements Command {
 
 		if (StringUtils.isBlank(systemName)) {
 			systemName = "UNKNOWN";
+		} else if (systemName.startsWith("Mac OS X")) {
+			systemName = "UNIX Type: L8";
 		} else {
 			systemName = systemName.replaceAll(" ", "-").toUpperCase();
 		}

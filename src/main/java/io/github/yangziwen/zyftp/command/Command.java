@@ -14,7 +14,7 @@ public interface Command {
 
 	Logger log = LoggerFactory.getLogger(Command.class);
 
-	String[] NON_AUTHENTICATED_COMMANDS = {"USER", "PASS", "AUTH", "QUIT", "PROT", "PBSZ" };
+	String[] NON_AUTHENTICATED_COMMANDS = {"USER", "PASS", "AUTH", "QUIT", "PROT", "PBSZ", "FEAT" };
 
 	FtpResponse execute(FtpSession session, FtpRequest request);
 
