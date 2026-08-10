@@ -32,6 +32,11 @@ public class APPE implements Command {
 			return createResponse(FtpReply.REPLY_425, request);
 		}
 
+		if (!session.increaseUploadConnections()) {
+			session.getLatestDataConnection().close();
+			return createResponse(FtpReply.REPLY_425, request);
+		}
+
 		if (file.getSize() > 0) {
 			FtpRequest restRequest = new FtpRequest("REST", String.valueOf(file.getSize()));
 			((AppeState) session.getCommandState()).putRequest(restRequest);
@@ -47,7 +52,11 @@ public class APPE implements Command {
 	private void doReceiveFileContent(FtpSession session, FtpRequest request, FileView file) {
 		request.getSession().getLatestDataConnection().getCloseFuture().addListener(f -> {
 			session.decreaseUploadConnections();
-			FtpServerHandler.sendResponse(createResponse(FtpReply.REPLY_226, request), request.getSession().getContext());
+			Throwable error = request.getSession().getLatestDataConnection().getUploadError();
+			FtpResponse response = error == null
+					? createResponse(FtpReply.REPLY_226, request)
+					: createResponse(FtpReply.REPLY_551, request);
+			FtpServerHandler.sendResponse(response, request.getSession().getContext());
 		});
 	}
 

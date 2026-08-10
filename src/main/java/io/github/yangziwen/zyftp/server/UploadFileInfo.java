@@ -23,6 +23,8 @@ public class UploadFileInfo {
 
 	private FtpSession session;
 
+	private volatile Throwable error;
+
 	public UploadFileInfo(FtpSession session) {
 		this.session = session;
 		this.offset = -1;
@@ -76,6 +78,16 @@ public class UploadFileInfo {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+
+	public void setError(Throwable error) {
+		if (this.error == null) {
+			this.error = error;
+		}
+	}
+
+	public boolean isSuccess() {
+		return error == null;
 	}
 
 }

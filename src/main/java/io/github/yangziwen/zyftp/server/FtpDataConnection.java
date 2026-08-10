@@ -19,4 +19,10 @@ public interface FtpDataConnection {
 
 	ChannelFuture getCloseFuture();
 
+	/**
+	 * Returns the error that occurred during upload (receiving data from client),
+	 * or null if the upload completed successfully or no upload happened on this connection.
+	 */
+	Throwable getUploadError();
+
 }

@@ -45,7 +45,11 @@ public class STOR implements Command {
 	private void doReceiveFileContent(FtpSession session, FtpRequest request, FileView file) {
 		session.getLatestDataConnection().getCloseFuture().addListener(f -> {
 			session.decreaseUploadConnections();
-			FtpServerHandler.sendResponse(createResponse(FtpReply.REPLY_226, request), session.getContext());
+			Throwable error = session.getLatestDataConnection().getUploadError();
+			FtpResponse response = error == null
+					? createResponse(FtpReply.REPLY_226, request)
+					: createResponse(FtpReply.REPLY_551, request);
+			FtpServerHandler.sendResponse(response, session.getContext());
 		});
 	}
 

@@ -139,6 +139,12 @@ public class FtpPortDataClient implements FtpDataConnection {
 	}
 
 	@Override
+	public Throwable getUploadError() {
+		UploadFileInfo info = uploadFileInfoRef.get();
+		return info != null ? info.getError() : null;
+	}
+
+	@Override
 	public ChannelFuture getCloseFuture() {
 		return channelFuture.channel().closeFuture();
 	}
@@ -158,6 +164,9 @@ public class FtpPortDataClient implements FtpDataConnection {
 			}
 			UploadFileInfo uploadFileInfo = uploadFileInfoRef.get();
 			if (!uploadFileInfo.isValid()) {
+				ReferenceCountUtil.release(msg);
+				uploadFileInfo.setError(new IllegalStateException("upload file is not valid"));
+				FtpPortDataClient.this.close();
 				return;
 			}
 			ByteBuf buffer = (ByteBuf) msg;
@@ -166,6 +175,9 @@ public class FtpPortDataClient implements FtpDataConnection {
 			    while ((length = buffer.readableBytes()) > 0) {
 			        buffer.readBytes(uploadFileInfo.getFileChannel(), uploadFileInfo.getAndAddOffset(length), length);
 			    }
+			} catch (Exception e) {
+				uploadFileInfo.setError(e);
+				FtpPortDataClient.this.close();
 			} finally {
 			    ReferenceCountUtil.release(buffer);
 			}

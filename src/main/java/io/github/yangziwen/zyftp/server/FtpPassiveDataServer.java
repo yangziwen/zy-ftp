@@ -62,6 +62,12 @@ public class FtpPassiveDataServer implements FtpDataConnection {
 		return session;
 	}
 
+	@Override
+	public Throwable getUploadError() {
+		UploadFileInfo info = uploadFileInfoRef.get();
+		return info != null ? info.getError() : null;
+	}
+
 	public Channel getServerChannel() {
 		if (serverChannelFuture == null) {
 			return null;
@@ -200,6 +206,9 @@ public class FtpPassiveDataServer implements FtpDataConnection {
 			}
 			UploadFileInfo uploadFileInfo = uploadFileInfoRef.get();
 			if (!uploadFileInfo.isValid()) {
+				ReferenceCountUtil.release(msg);
+				uploadFileInfo.setError(new IllegalStateException("upload file is not valid"));
+				FtpPassiveDataServer.this.close();
 				return;
 			}
 			ByteBuf buffer = (ByteBuf) msg;
@@ -208,6 +217,9 @@ public class FtpPassiveDataServer implements FtpDataConnection {
 			    while ((length = buffer.readableBytes()) > 0) {
 			        buffer.readBytes(uploadFileInfo.getFileChannel(), uploadFileInfo.getAndAddOffset(length), length);
 			    }
+			} catch (Exception e) {
+				uploadFileInfo.setError(e);
+				FtpPassiveDataServer.this.close();
 			} finally {
 			    ReferenceCountUtil.release(buffer);
 			}
