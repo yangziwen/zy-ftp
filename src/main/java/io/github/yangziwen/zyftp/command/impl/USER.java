@@ -24,12 +24,10 @@ public class USER implements Command {
 
 		if (session.isLoggedIn()) {
 			User user = session.getUser();
-			if (user == null || !username.equals(user.getUsername()) || user.isEnabled()) {
-				return createFailedResponse(FtpReply.REPLY_530, nameWithSuffix("invalid"), request);
-			}
-			if (username.equals(user.getUsername())) {
+			if (user != null && username.equals(user.getUsername())) {
 				return createResponse(FtpReply.REPLY_230, request);
 			}
+			return Command.createResponse(FtpReply.REPLY_530, nameWithSuffix("invalid"), request);
 		}
 
 		FtpUserConfig userConfig = session.getUserConfig(username);
