@@ -28,11 +28,11 @@ public class PASS implements Command {
 			return createResponse(FtpReply.REPLY_202, request);
 		}
 
-		if (FtpSession.getLoggedInUserTotalCount() >= session.getServerConfig().getMaxLogins()) {
+		if (session.getServerContext().getLoggedInUserTotalCount() >= session.getServerConfig().getMaxLogins()) {
 			return createFailedResponse(FtpReply.REPLY_421, nameWithSuffix("login"), request);
 		}
 
-		if (FtpSession.getLoggedInUserCount(user.getUsername()) >= user.getUserConfig().getMaxLogins()) {
+		if (session.getServerContext().getLoggedInUserCount(user.getUsername()) >= user.getUserConfig().getMaxLogins()) {
 			return createFailedResponse(FtpReply.REPLY_421, nameWithSuffix("login"), request);
 		}
 

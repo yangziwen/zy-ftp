@@ -2,18 +2,14 @@ package io.github.yangziwen.zyftp.server;
 
 import java.security.cert.CertificateException;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentHashMap.KeySetView;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.net.ssl.SSLException;
-
-import org.apache.commons.lang3.StringUtils;
 
 import io.github.yangziwen.zyftp.command.impl.state.CommandState;
 import io.github.yangziwen.zyftp.command.impl.state.OtherState;
@@ -46,8 +42,6 @@ import lombok.extern.slf4j.Slf4j;
 public class FtpSession {
 
 	private static final AttributeKey<FtpSession> SESSION_KEY = AttributeKey.valueOf("ftp.session");
-
-	private static final ConcurrentMap<String, Set<FtpSession>> LOGGED_IN_USER_SESSION_MAP = new ConcurrentHashMap<>();
 
 	private static AtomicReference<SelfSignedCertificate> sslCertificateRef = new AtomicReference<SelfSignedCertificate>();
 
@@ -311,32 +305,16 @@ public class FtpSession {
 		this.user = user;
 		this.fileSystemView = new FileSystemView(user);
 		this.loggedIn = true;
-		ensureSessionSet(user.getUsername(), LOGGED_IN_USER_SESSION_MAP).add(this);
+		serverContext.registerLogin(user.getUsername(), this);
 	}
 
 	public void logout() {
-		ensureSessionSet(user.getUsername(), LOGGED_IN_USER_SESSION_MAP).remove(this);
+		if (user != null) {
+			serverContext.unregisterLogin(user.getUsername(), this);
+		}
 		this.user = null;
 		this.fileSystemView = null;
 		this.loggedIn = false;
-	}
-
-	public static int getLoggedInUserCount(String username) {
-		if (StringUtils.isBlank(username) || !LOGGED_IN_USER_SESSION_MAP.containsKey(username)) {
-			return 0;
-		}
-		return LOGGED_IN_USER_SESSION_MAP.get(username).size();
-	}
-
-	public static int getLoggedInUserTotalCount() {
-		return LOGGED_IN_USER_SESSION_MAP.values().stream().collect(Collectors.summingInt(Set::size));
-	}
-
-	private static Set<FtpSession> ensureSessionSet(String username, ConcurrentMap<String, Set<FtpSession>> sessionMap) {
-		if (!sessionMap.containsKey(username)) {
-			sessionMap.putIfAbsent(username, ConcurrentHashMap.newKeySet());
-		}
-		return sessionMap.get(username);
 	}
 
 	public Promise<Void> closeDataConnections() {

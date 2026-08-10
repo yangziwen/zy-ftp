@@ -38,12 +38,12 @@ public class USER implements Command {
 			return createFailedResponse(FtpReply.REPLY_530, nameWithSuffix("invalid"), request);
 		}
 
-		if (FtpSession.getLoggedInUserTotalCount() >= session.getServerConfig().getMaxLogins()) {
+		if (session.getServerContext().getLoggedInUserTotalCount() >= session.getServerConfig().getMaxLogins()) {
 			log.warn("too many logins of users");
 			return createFailedResponse(FtpReply.REPLY_421, nameWithSuffix("login"), request);
 		}
 
-		if (FtpSession.getLoggedInUserCount(username) >= userConfig.getMaxLogins()) {
+		if (session.getServerContext().getLoggedInUserCount(username) >= userConfig.getMaxLogins()) {
 			log.warn("too many logins of user[{}]", username);
 			return createFailedResponse(FtpReply.REPLY_421, nameWithSuffix("login"), request);
 		}
