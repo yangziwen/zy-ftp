@@ -20,7 +20,8 @@ public class FtpResponseEncoder extends MessageToByteEncoder<FtpResponse> {
 		String line = String.valueOf(response.getCode());
 		if (StringUtils.isNotBlank(response.getMessage())) {
 			if ("FEAT".equals(response.getCommand())) {
-				line += "-" + response.getMessage();
+				// RFC 959 requires \r\n for all lines; lftp strictly enforces this
+				line += "-" + response.getMessage().replace("\n", "\r\n");
 			} else {
 				line += " " + response.getMessage();
 			}
