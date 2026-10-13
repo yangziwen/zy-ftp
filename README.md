@@ -20,7 +20,7 @@ A netty based ftp server
     <dependency>
         <groupId>io.github.yangziwen</groupId>
         <artifactId>zy-ftp</artifactId>
-        <version>0.0.2</version>
+        <version>0.0.3</version>
     </dependency>
     ```
     2. Start the server
@@ -48,7 +48,7 @@ A netty based ftp server
       -p 8121:8121 \
       -e PASSIVE_PORTS=40000-40060 \
       -p 40000-40060:40000-40060 \
-      zy-ftp:0.0.2
+      zy-ftp:0.0.3
     ```
 * See more options：`java -jar zy-ftp.jar -h`
 
